@@ -60,7 +60,7 @@ export class AdminComponent implements OnInit {
   cargarMensajes(token: string) {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get('http://127.0.0.1:8000/api/messages', { headers }).subscribe({
+    this.http.get('https://amazon-nuts-backend-production.up.railway.app/api/messages', { headers }).subscribe({
       next: (res: any) => {
         this.mensajes = res;
         this.mensajesFiltrados = res;
@@ -97,7 +97,7 @@ export class AdminComponent implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post(`http://127.0.0.1:8000/api/messages/${id}/reply`, { reply_message: texto }, { headers })
+    this.http.post(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}/reply`, { reply_message: texto }, { headers })
       .subscribe({
         next: () => {
           this.enviandoRespuesta = false;
@@ -129,7 +129,7 @@ export class AdminComponent implements OnInit {
       const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
       // 2. Le decimos a Laravel que lo borre
-      this.http.delete(`http://127.0.0.1:8000/api/messages/${id}`, { headers })
+      this.http.delete(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}`, { headers })
         .subscribe({
           next: () => {
             // 3. Lo borramos de nuestras listas de Angular para que desaparezca al instante
@@ -173,7 +173,7 @@ export class AdminComponent implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.put(`http://127.0.0.1:8000/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
+    this.http.put(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
       .subscribe({
         next: () => {
           // Actualizamos localmente el mensaje para no tener que recargar toda la página

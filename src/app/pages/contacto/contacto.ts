@@ -42,7 +42,7 @@ export class Contacto {
     }
 
     this.enviando = true;
-    const urlLaravel = 'http://127.0.0.1:8000/api/contact'; // La ruta de tu Backend
+    const urlLaravel = 'https://amazon-nuts-backend-production.up.railway.app/api/contact'; // La ruta de tu Backend
 
     this.http.post(urlLaravel, this.contactoForm.value).subscribe({
       next: (respuesta: any) => {

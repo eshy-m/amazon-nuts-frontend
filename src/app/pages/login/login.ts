@@ -32,7 +32,7 @@ export class LoginComponent {
 
     this.cargando = true;
     this.mensajeError = '';
-    const urlLaravel = 'http://127.0.0.1:8000/api/login';
+    const urlLaravel = 'https://amazon-nuts-backend-production.up.railway.app/api/login';
 
     this.http.post(urlLaravel, this.loginForm.value).subscribe({
       next: (respuesta: any) => {
