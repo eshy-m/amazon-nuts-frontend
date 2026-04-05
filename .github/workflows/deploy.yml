@@ -23,7 +23,7 @@ jobs:
       - name: 🏗️ Compilar Angular
         run: npm run build
 
-      - name: 🌐 Subir a Hostinger por FTP
+      - name: 🌐 Subir la Hostinger por FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
