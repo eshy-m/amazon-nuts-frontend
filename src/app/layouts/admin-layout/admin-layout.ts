@@ -47,7 +47,11 @@ export class AdminLayoutComponent {
   }
 
   cerrarSesion() {
+    // 1. Borramos los datos de seguridad
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+
+    // 2. Mandamos al usuario fuera del panel
     this.router.navigate(['/login']);
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { environment } from '../../../environment';
+import { environment } from '../../../environments/environment';
 
 // Asegúrate de que esta ruta apunte a donde realmente guardaste tu servicio
 import { TrabajadorService } from '../../services/trabajador';
