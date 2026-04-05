@@ -23,13 +23,14 @@ jobs:
       - name: 🏗️ Compilar Angular
         run: npm run build
 
-      - - name: 🌐 Subir a Hostinger por FTP
+      - name: 🌐 Subir a Hostinger por FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps    # <-- LÍNEA NUEVA (Fuerza conexión segura)
-          port: 21          # <-- LÍNEA NUEVA (Asegura el puerto correcto)
+          # REVISA ESTA LÍNEA (ver nota abajo)
+          protocol: ftps
+          port: 21
           local-dir: ./dist/amazon-nuts-frontend/browser/ 
           server-dir: /public_html/
