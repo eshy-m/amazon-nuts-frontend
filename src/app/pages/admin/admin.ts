@@ -111,7 +111,7 @@ export class Admin implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post(`http://localhost:8000/api/messages/${id}/reply`, { reply_message: texto }, { headers })
+    this.http.post(`https://api.amazonnuts.com/api/messages/${id}/reply`, { reply_message: texto }, { headers })
       .subscribe({
         next: () => {
           this.enviandoRespuesta = false;
@@ -143,7 +143,7 @@ export class Admin implements OnInit {
       const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
       // 2. Le decimos a Laravel que lo borre
-      this.http.delete(`http://localhost:8000/api/messages/${id}`, { headers })
+      this.http.delete(`https://api.amazonnuts.com/api/messages/${id}`, { headers })
         .subscribe({
           next: () => {
             // 3. Lo borramos de nuestras listas de Angular para que desaparezca al instante
@@ -187,7 +187,7 @@ export class Admin implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.put(`http://localhost:8000/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
+    this.http.put(`https://api.amazonnuts.com/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
       .subscribe({
         next: () => {
           // Actualizamos localmente el mensaje para no tener que recargar toda la página
