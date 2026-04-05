@@ -1,7 +1,9 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+// 👇 AGREGADO: Importación de tu environment (verifica que la ruta de carpetas sea la correcta)
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin',
@@ -13,39 +15,36 @@ import { Router } from '@angular/router';
 export class Admin implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef); // Para forzar el refresco de pantalla
+  private cdr = inject(ChangeDetectorRef);
 
   mensajes: any[] = [];
   mensajesFiltrados: any[] = [];
-  //para PONER PAGINACIÓN
+
+  // PAGINACIÓN
   paginaActual: number = 1;
   itemsPorPagina: number = 10;
-
 
   cargando: boolean = true;
   usuarioLogueado: string = 'Admin';
 
-  // 👇 VARIABLES PARA ESTADÍSTICAS
+  // ESTADÍSTICAS
   totalMensajes: number = 0;
   mensajesNuevos: number = 0;
   mensajesRespondidos: number = 0;
 
-  // Control del Modal
+  // MODAL
   modalVisible: boolean = false;
   mensajeSeleccionado: any = null;
   enviandoRespuesta: boolean = false;
 
-
   ngOnInit() {
     const token = localStorage.getItem('auth_token');
 
-    // Si no hay token, fuera al login
     if (!token || token === 'undefined') {
       this.cerrarSesion();
       return;
     }
 
-    // Recuperar nombre del usuario logueado
     try {
       const userData = localStorage.getItem('user_data');
       if (userData) {
@@ -54,19 +53,18 @@ export class Admin implements OnInit {
       }
     } catch (e) { console.warn('Error al leer user_data'); }
 
-    this.cargarMensajes(token);
+    this.cargarMensajes();
   }
 
-  cargarMensajes(token: string) {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-    this.http.get('\${environment.apiUrl}/messages', { headers }).subscribe({
+  // 👇 LIMPIO: Ya no necesitamos pasar el token manualmente, el interceptor lo hace.
+  cargarMensajes() {
+    this.http.get(`${environment.apiUrl}/messages`).subscribe({
       next: (res: any) => {
         this.mensajes = res;
         this.mensajesFiltrados = res;
         this.cargando = false;
         this.calcularEstadisticas();
-        this.cdr.detectChanges();// Forzamos a Angular a mostrar los datos
+        this.cdr.detectChanges();
       },
       error: () => {
         this.cargando = false;
@@ -84,38 +82,29 @@ export class Admin implements OnInit {
     this.modalVisible = false;
     this.mensajeSeleccionado = null;
   }
-  //registrar personal
-  // 👇 FUNCIÓN PARA ABRIR EL MODAL Y VER LOS DETALLES DEL MENSAJE
-  verDetalles(mensaje: any) {
-    // 1. Guardamos el mensaje al que le dimos clic en nuestra variable seleccionada
-    this.mensajeSeleccionado = mensaje;
 
-    // 2. Hacemos visible el modal
+  verDetalles(mensaje: any) {
+    this.mensajeSeleccionado = mensaje;
     this.modalVisible = true;
 
-    // 3. (Opcional pero recomendado) Si el mensaje era "Nuevo" (unread), 
-    // lo pasamos automáticamente a "Leído" (read) al abrirlo.
     if (mensaje.status === 'unread') {
       this.cambiarEstado(mensaje.id, 'read');
     }
   }
-  //para responder el mensaje
-  // 👇 NUEVA FUNCIÓN PARA ENVIAR CORREO DESDE LA APP
+
+  // 👇 CORREGIDO: Uso de acentos graves (backticks) y sin cabeceras manuales
   enviarRespuesta(texto: string, id: number) {
     if (!texto.trim()) {
       alert('Por favor, escribe una respuesta.');
       return;
     }
 
-    this.enviandoRespuesta = true; // Encendemos el botón de cargando
-    const token = localStorage.getItem('auth_token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    this.enviandoRespuesta = true;
 
-    this.http.post(`\${environment.apiUrl}/messages/${id}/reply`, { reply_message: texto }, { headers })
+    this.http.post(`${environment.apiUrl}/messages/${id}/reply`, { reply_message: texto })
       .subscribe({
         next: () => {
           this.enviandoRespuesta = false;
-          // Actualizamos la tabla y las estadísticas mágicamente
           const index = this.mensajes.findIndex(m => m.id === id);
           if (index !== -1) {
             this.mensajes[index].status = 'replied';
@@ -132,25 +121,17 @@ export class Admin implements OnInit {
         }
       });
   }
-  //eliminar
-  // 👇 NUEVA FUNCIÓN PARA ELIMINAR MENSAJES
+
+  // 👇 CORREGIDO: Uso de acentos graves
   eliminarMensaje(id: number) {
-    // 1. Pedimos confirmación al usuario para no borrar por accidente
     const confirmar = confirm('¿Estás seguro de que deseas eliminar esta cotización? Esta acción la quitará de tu bandeja.');
 
     if (confirmar) {
-      const token = localStorage.getItem('auth_token');
-      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-      // 2. Le decimos a Laravel que lo borre
-      this.http.delete(`\${environment.apiUrl}/messages/${id}`, { headers })
+      this.http.delete(`${environment.apiUrl}/messages/${id}`)
         .subscribe({
           next: () => {
-            // 3. Lo borramos de nuestras listas de Angular para que desaparezca al instante
             this.mensajes = this.mensajes.filter(m => m.id !== id);
             this.mensajesFiltrados = this.mensajesFiltrados.filter(m => m.id !== id);
-
-            // 4. Actualizamos todo
             this.calcularEstadisticas();
             this.cerrarModal();
             this.cdr.detectChanges();
@@ -163,17 +144,13 @@ export class Admin implements OnInit {
     }
   }
 
-  //FILTRAR
-  // 👇 NUEVA FUNCIÓN PARA EL BUSCADOR
   filtrarMensajes(event: any) {
-    const termino = event.target.value.toLowerCase(); // Lo que el usuario escribe
-    // Agrega esto al final de la función:
+    const termino = event.target.value.toLowerCase();
     this.paginaActual = 1;
+
     if (!termino) {
-      // Si la caja está vacía, mostramos todos los mensajes
       this.mensajesFiltrados = [...this.mensajes];
     } else {
-      // Filtramos por nombre, correo o producto
       this.mensajesFiltrados = this.mensajes.filter(m =>
         m.sender_name.toLowerCase().includes(termino) ||
         m.email.toLowerCase().includes(termino) ||
@@ -182,15 +159,11 @@ export class Admin implements OnInit {
     }
   }
 
-  // Actualiza el estado (Leído/Respondido) en Laravel y en la lista local
+  // 👇 CORREGIDO: Uso de acentos graves
   cambiarEstado(id: number, nuevoEstado: string) {
-    const token = localStorage.getItem('auth_token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-
-    this.http.put(`\${environment.apiUrl}/messages/${id}/status`, { status: nuevoEstado }, { headers })
+    this.http.put(`${environment.apiUrl}/messages/${id}/status`, { status: nuevoEstado })
       .subscribe({
         next: () => {
-          // Actualizamos localmente el mensaje para no tener que recargar toda la página
           const index = this.mensajes.findIndex(m => m.id === id);
           if (index !== -1) {
             this.mensajes[index].status = nuevoEstado;
@@ -202,30 +175,27 @@ export class Admin implements OnInit {
         error: () => alert('Error al actualizar estado')
       });
   }
-  // 👇 FUNCIÓN PARA CALCULAR ESTADÍSTICAS
+
   calcularEstadisticas() {
     this.totalMensajes = this.mensajes.length;
     this.mensajesNuevos = this.mensajes.filter(m => m.status === 'unread').length;
     this.mensajesRespondidos = this.mensajes.filter(m => m.status === 'replied').length;
   }
-  // 👇 FUNCIONES DE PAGINACIÓN
 
-  // 1. Calcula cuántas páginas hay en total según los filtros
   get totalPaginas(): number {
     return Math.ceil(this.mensajesFiltrados.length / this.itemsPorPagina);
   }
 
-  // 2. Recorta la lista de mensajes para mostrar solo los 10 correspondientes
   get mensajesMostrados(): any[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
     return this.mensajesFiltrados.slice(inicio, fin);
   }
 
-  // 3. Permite avanzar o retroceder de página
   cambiarPagina(direccion: number) {
     this.paginaActual += direccion;
   }
+
   cerrarSesion() {
     localStorage.clear();
     this.router.navigate(['/login']);
