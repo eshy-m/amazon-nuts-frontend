@@ -19,7 +19,17 @@ export class TrabajadorComponent implements OnInit {
   lista: any[] = [];
 
   // Modelo para capturar los datos del formulario
-  form = { nombres: '', apellidos: '', dni: '', genero: 'M' };
+  form = {
+    nombres: '',
+    apellidos: '',
+    dni: '',
+    area: '',
+    celular: '',
+    direccion: '',
+    experiencia: false,
+    observaciones: '',
+    fecha_inicio: ''
+  };
 
   // Inyectamos nuestro servicio
   constructor(private api: TrabajadorService) { }
@@ -42,28 +52,42 @@ export class TrabajadorComponent implements OnInit {
   }
 
   // Llama al servicio para registrar uno nuevo
+  // Llama al servicio para registrar uno nuevo
   guardar() {
-    // Validación rápida del DNI
+    // Validaciones rápidas
     if (!this.form.dni || this.form.dni.length !== 8) {
       alert('El DNI debe tener exactamente 8 dígitos.');
+      return;
+    }
+    if (!this.form.area) {
+      alert('Por favor, selecciona el área asignada.');
       return;
     }
 
     this.api.registrar(this.form).subscribe({
       next: () => {
         alert('¡Trabajador registrado y QR generado con éxito!');
-        this.obtener(); // Recargamos la lista para ver el nuevo fotocheck
+        this.obtener(); // Recargamos la lista de fotochecks
 
-        // Limpiamos el formulario
-        this.form = { nombres: '', apellidos: '', dni: '', genero: 'M' };
+        // 👇 ESTA ES LA MAGIA QUE LIMPIA EL FORMULARIO 👇
+        this.form = {
+          nombres: '',
+          apellidos: '',
+          dni: '',
+          area: '',
+          celular: '',
+          direccion: '',
+          experiencia: false,
+          observaciones: '',
+          fecha_inicio: ''
+        };
       },
-      error: (e) => {
-        alert('Error: ' + (e.error?.message || 'No se pudo registrar al trabajador. Verifica si el DNI ya existe.'));
-        console.error(e);
+      error: (err) => {
+        console.error('Error al guardar:', err);
+        alert('Error al registrar. Verifica que el DNI no esté duplicado.');
       }
     });
   }
-
   // Activa el modo impresión del navegador para imprimir los carnets
   imprimir() {
     window.print();
