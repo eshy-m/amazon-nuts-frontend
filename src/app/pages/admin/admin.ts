@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
   templateUrl: './admin.html',
   styleUrl: './admin.css'
 })
-export class AdminComponent implements OnInit {
+export class Admin implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef); // Para forzar el refresco de pantalla
@@ -60,7 +60,7 @@ export class AdminComponent implements OnInit {
   cargarMensajes(token: string) {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get('https://amazon-nuts-backend-production.up.railway.app/api/messages', { headers }).subscribe({
+    this.http.get('http://localhost:8000/api/messages', { headers }).subscribe({
       next: (res: any) => {
         this.mensajes = res;
         this.mensajesFiltrados = res;
@@ -84,7 +84,21 @@ export class AdminComponent implements OnInit {
     this.modalVisible = false;
     this.mensajeSeleccionado = null;
   }
+  //registrar personal
+  // 👇 FUNCIÓN PARA ABRIR EL MODAL Y VER LOS DETALLES DEL MENSAJE
+  verDetalles(mensaje: any) {
+    // 1. Guardamos el mensaje al que le dimos clic en nuestra variable seleccionada
+    this.mensajeSeleccionado = mensaje;
 
+    // 2. Hacemos visible el modal
+    this.modalVisible = true;
+
+    // 3. (Opcional pero recomendado) Si el mensaje era "Nuevo" (unread), 
+    // lo pasamos automáticamente a "Leído" (read) al abrirlo.
+    if (mensaje.status === 'unread') {
+      this.cambiarEstado(mensaje.id, 'read');
+    }
+  }
   //para responder el mensaje
   // 👇 NUEVA FUNCIÓN PARA ENVIAR CORREO DESDE LA APP
   enviarRespuesta(texto: string, id: number) {
@@ -97,7 +111,7 @@ export class AdminComponent implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}/reply`, { reply_message: texto }, { headers })
+    this.http.post(`http://localhost:8000/api/messages/${id}/reply`, { reply_message: texto }, { headers })
       .subscribe({
         next: () => {
           this.enviandoRespuesta = false;
@@ -129,7 +143,7 @@ export class AdminComponent implements OnInit {
       const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
       // 2. Le decimos a Laravel que lo borre
-      this.http.delete(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}`, { headers })
+      this.http.delete(`http://localhost:8000/api/messages/${id}`, { headers })
         .subscribe({
           next: () => {
             // 3. Lo borramos de nuestras listas de Angular para que desaparezca al instante
@@ -173,7 +187,7 @@ export class AdminComponent implements OnInit {
     const token = localStorage.getItem('auth_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.put(`https://amazon-nuts-backend-production.up.railway.app/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
+    this.http.put(`http://localhost:8000/api/messages/${id}/status`, { status: nuevoEstado }, { headers })
       .subscribe({
         next: () => {
           // Actualizamos localmente el mensaje para no tener que recargar toda la página

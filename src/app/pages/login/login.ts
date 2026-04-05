@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environment';
 
 @Component({
   selector: 'app-login',
@@ -32,7 +33,7 @@ export class LoginComponent {
 
     this.cargando = true;
     this.mensajeError = '';
-    const urlLaravel = 'https://amazon-nuts-backend-production.up.railway.app/api/login';
+    const urlLaravel = `${environment.apiUrl}/login`;
 
     this.http.post(urlLaravel, this.loginForm.value).subscribe({
       next: (respuesta: any) => {

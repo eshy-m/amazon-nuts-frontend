@@ -1,0 +1,44 @@
+/* ===== ESTILOS PARA IMPRESIÓN ===== */
+@media print {
+
+    /* Ocultamos el menú lateral, el header y el formulario */
+    .no-print,
+    aside,
+    header,
+    .mobile-topbar {
+        display: none !important;
+    }
+
+    /* Quitamos márgenes y paddings globales para aprovechar la hoja */
+    body,
+    main,
+    .admin-page,
+    .print-container {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: white !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Forzamos a la grilla a comportarse bien en papel A4 */
+    .print-container .grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 15px !important;
+        justify-content: flex-start !important;
+    }
+
+    .fotocheck-wrapper {
+        page-break-inside: avoid;
+        /* Evita que un fotocheck se parta en dos páginas */
+        margin-bottom: 10px;
+    }
+
+    .print-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        /* Quitamos sombras en papel para ahorrar tinta */
+    }
+}
