@@ -60,7 +60,7 @@ export class Admin implements OnInit {
   cargarMensajes(token: string) {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get('http://localhost:8000/api/messages', { headers }).subscribe({
+    this.http.get('https://api.amazonnuts.com/api/messages', { headers }).subscribe({
       next: (res: any) => {
         this.mensajes = res;
         this.mensajesFiltrados = res;
