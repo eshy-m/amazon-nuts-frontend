@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ZXingScannerModule } from '@zxing/ngx-scanner'; // 📷 Importación del escáner
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { AsistenciaService } from '../../services/asistencia';
 
 @Component({
@@ -13,7 +13,7 @@ import { AsistenciaService } from '../../services/asistencia';
 })
 export class Asistencia {
   // ==========================================
-  // VARIABLES DE FORMULARIO Y ESTADO
+  // VARIABLES DE FORMULARIO
   // ==========================================
   dniManual: string = '';
   areaSeleccionada: string = 'Selección';
@@ -24,58 +24,53 @@ export class Asistencia {
   mensajeError: string = '';
 
   // ==========================================
-  // VARIABLES DE CONTROL DE CÁMARA (Para PC)
+  // VARIABLES DE CONTROL DE CÁMARA
   // ==========================================
   tienePermisoCamara: boolean = false;
   camarasDisponibles: any[] = [];
-  camaraActual: any = null; // Guarda la cámara que se está usando en este momento
+  camaraActual: any = undefined; // Lo dejamos en undefined para que el navegador elija la cámara frontal/principal por defecto
 
   constructor(private asistenciaService: AsistenciaService) { }
 
   // ==========================================
-  // LÓGICA DE LA CÁMARA Y ESCÁNER
+  // EVENTOS DEL ESCÁNER QR
   // ==========================================
 
-  // 1. Se ejecuta automáticamente cuando lee un QR válido
   onEscaneoExitoso(resultadoQr: string) {
     if (resultadoQr && resultadoQr.length === 8) {
       this.enviarAsistencia(resultadoQr);
     }
   }
 
-  // 2. Verifica si el navegador nos dio permiso de usar la cámara
+  // Captura el error de decodificación y lo silencia para no llenar la consola de rojo
+  onEscaneoError(error: any) {
+    // No hacemos nada. Es normal que falle si no hay un QR frente a la cámara en este milisegundo.
+  }
+
   onPermisoCamara(permiso: boolean) {
     this.tienePermisoCamara = permiso;
     if (!permiso) {
-      this.mensajeError = "⚠️ El navegador bloqueó la cámara. Ve al candadito en la barra de direcciones y selecciona 'Permitir'.";
-      console.error("Permiso de cámara denegado.");
+      this.mensajeError = "⚠️ Permiso de cámara denegado por el navegador.";
     }
   }
 
-  // 3. Se dispara si la PC no tiene ninguna cámara conectada
   onCamaraNoEncontrada() {
     this.tienePermisoCamara = false;
-    this.mensajeError = "⚠️ No se detectó ninguna cámara web conectada a este dispositivo.";
-    console.error("No se encontraron cámaras.");
+    this.mensajeError = "⚠️ No se detectó ninguna cámara web.";
   }
 
-  // 4. Detecta todas las cámaras conectadas y autoselecciona la primera
   onCamarasEncontradas(camaras: any[]) {
     this.camarasDisponibles = camaras;
-    console.log("Cámaras detectadas:", camaras);
-
-    // Si encuentra cámaras, fuerza al sistema a usar la primera por defecto
-    if (camaras.length > 0) {
-      this.camaraActual = camaras[0];
-    }
+    console.log("Cámaras detectadas en este dispositivo:", camaras);
+    // Ya no forzamos this.camaraActual = camaras[0] para evitar la cámara negra (infrarroja) en laptops.
   }
 
-  // 5. Permite al usuario cambiar de cámara manualmente desde el menú desplegable
   cambiarCamara(event: any) {
     const index = event.target.value;
     if (index !== "") {
       this.camaraActual = this.camarasDisponibles[index];
-      console.log("Se cambió a la cámara:", this.camaraActual.label);
+    } else {
+      this.camaraActual = undefined; // Vuelve a la cámara por defecto
     }
   }
 
@@ -99,7 +94,6 @@ export class Asistencia {
         this.mensajeExito = `${res.trabajador}: ${res.message} (${res.hora})`;
         this.mensajeError = '';
 
-        // Agregamos el registro a la lista visible
         this.registrosRecientes.unshift({
           trabajador: res.trabajador,
           estado: res.status,
@@ -107,13 +101,12 @@ export class Asistencia {
           area: this.areaSeleccionada
         });
 
-        setTimeout(() => this.mensajeExito = '', 3000);
+        setTimeout(() => this.mensajeExito = '', 4000);
       },
       error: (err) => {
-        // Mostramos el error exacto que nos envía Laravel
         this.mensajeError = err.error?.message || 'Error al conectar con el servidor';
         this.mensajeExito = '';
-        setTimeout(() => this.mensajeError = '', 3000);
+        setTimeout(() => this.mensajeError = '', 4000);
       }
     });
   }
