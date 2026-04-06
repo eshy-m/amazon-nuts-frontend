@@ -1,36 +1,30 @@
-name: 🚀 Desplegar Angular en Hostinger
+name: Despliegue Backend Amazon Nuts
 
 on:
   push:
     branches:
-      - main # O la rama que uses como principal (puede ser 'master')
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Descargar código
-        uses: actions/checkout@v4
+      - name: 🚚 Obtener código
+        uses: actions/checkout@v3
 
-      - name: ⚙️ Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: 📦 Instalar dependencias
-        run: npm install
-
-      - name: 🏗️ Compilar Angular
-        run: npm run build
-
-      - name: 🌐 Subir la Hostinger por FTP
+      - name: 🚀 Subir a Hostinger vía FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # REVISA ESTA LÍNEA (ver nota abajo)
-          protocol: ftps
-          port: 21
-          local-dir: ./dist/amazon-nuts-frontend/browser/ 
-          server-dir: /public_html/
+          local-dir: ./ 
+          # 👇 CORRECCIÓN: Le quitamos el "public_html/" para evitar el clon
+          server-dir: /public_html/backend/
+          exclude: |
+            **/.git*
+            **/.github*
+            **/node_modules/**
+            **/vendor/**
+            .env
+            storage/*.log
