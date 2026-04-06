@@ -1,4 +1,8 @@
+// src/environments/environment.prod.ts
 export const environment = {
     production: true,
-    apiUrl: 'https://eshypro.com/backend/public/api' // La dirección de Hostinger
+    // Esta es la ruta de tu API real en internet
+    apiUrl: 'https://eshypro.com/backend/public/api',
+    // Esta es la ruta donde Angular buscará las imágenes en internet
+    storageUrl: 'https://eshypro.com/backend/public/storage/'
 };

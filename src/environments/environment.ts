@@ -1,5 +1,8 @@
+// src/environments/environment.ts
 export const environment = {
     production: false,
-    // apiUrl: 'https://eshypro.com/api/'
-    apiUrl: 'http://localhost:8000/api' // O la URL de Railway si estás probando allá
+    // Esta es la ruta para hacer pruebas en tu computadora
+    apiUrl: 'http://localhost:8000/api',
+    // Esta es la ruta donde Angular buscará las imágenes en tu computadora
+    storageUrl: 'http://localhost:8000/storage/'
 };
