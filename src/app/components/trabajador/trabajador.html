@@ -115,8 +115,7 @@
                     </div>
 
                     <div class="mt-auto mb-4 mx-auto bg-white p-2 border border-gray-100 rounded-lg shadow-inner">
-                        <img [src]="'${environment.apiUrl}/storage/' + t.qr_code"
-                            class="w-[100px] h-[100px] object-contain mix-blend-multiply" alt="QR Code">
+                        <img [src]="urlStorage + t.qr_code" alt="QR Code">
                     </div>
 
                     <div class="bg-green-950 text-white text-center py-2 mt-auto">

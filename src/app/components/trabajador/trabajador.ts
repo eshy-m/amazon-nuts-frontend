@@ -92,4 +92,6 @@ export class TrabajadorComponent implements OnInit {
   imprimir() {
     window.print();
   }
+  // En tu componente .ts
+  public urlStorage = 'https://eshypro.com/backend/public/storage/';
 }
