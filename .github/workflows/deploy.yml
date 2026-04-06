@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./ 
-          # 👇 CORRECCIÓN: Le quitamos el "public_html/" para evitar el clon
+          # 👇 CORRECCIÓN: Le quitamos el "public_html/" ara evitar el clon
           server-dir: /public_html/backend/
           exclude: |
             **/.git*
