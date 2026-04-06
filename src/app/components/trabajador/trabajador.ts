@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -25,7 +25,10 @@ export class TrabajadorComponent implements OnInit {
   // Objeto del formulario
   public form: any = this.obtenerFormularioVacio();
 
-  constructor(private api: TrabajadorService) { }
+  constructor(
+    private api: TrabajadorService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.obtener();
@@ -36,6 +39,8 @@ export class TrabajadorComponent implements OnInit {
     this.api.listar().subscribe({
       next: (data: any) => {
         this.lista = data;
+        // 3. ¡EL TOQUE MÁGICO! Le decimos a Angular que actualice la pantalla YA.
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error al obtener los trabajadores:', err)
     });
