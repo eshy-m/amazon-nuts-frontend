@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment'; // <-- Importamos el environment
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AsistenciaService {
+  // Toma la URL base del environment y le agrega el prefijo del módulo
   private apiUrl = environment.apiUrl + '/asistencias';
 
   constructor(private http: HttpClient) { }
