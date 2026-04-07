@@ -15,6 +15,7 @@ export class AsistenciaService {
 
   // Ahora solo mandamos el código del QR al backend (trabajador_id)
   registrarAsistencia(qrCode: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/registrar`, { trabajador_id: qrCode });
+    const body = { trabajador_id: qrCode };
+    return this.http.post(`${this.apiUrl}/registrar`, body);
   }
 }
