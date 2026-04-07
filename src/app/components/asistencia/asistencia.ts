@@ -15,6 +15,10 @@ export class Asistencia {
   scannerHabilitado = false;
   procesando = false;
 
+  // 🟢 NUEVAS VARIABLES PARA MANEJAR MÚLTIPLES CÁMARAS
+  camarasDisponibles: MediaDeviceInfo[] = [];
+  dispositivoActual: MediaDeviceInfo | undefined;
+
   mostrarModal = false;
   esError = false;
   mensajeModal = '';
@@ -22,7 +26,7 @@ export class Asistencia {
 
   constructor(
     private asistenciaService: AsistenciaService,
-    private cdr: ChangeDetectorRef // 🟢 IMPORTANTE: Inyectamos el actualizador de pantalla
+    private cdr: ChangeDetectorRef
   ) { }
 
   activarEscaner() {
@@ -31,10 +35,34 @@ export class Asistencia {
 
   finalizarControl() {
     this.scannerHabilitado = false;
+    this.dispositivoActual = undefined;
+  }
+
+  // 🟢 GUARDAMOS TODAS LAS CÁMARAS
+  onCamarasEncontradas(camaras: MediaDeviceInfo[]) {
+    console.log("Cámaras encontradas:", camaras);
+    this.camarasDisponibles = camaras;
+    if (camaras && camaras.length > 0) {
+      this.dispositivoActual = camaras[0]; // Intenta con la primera por defecto
+      this.cdr.detectChanges();
+    }
+  }
+
+  // 🟢 FUNCIÓN PARA CAMBIAR DE CÁMARA DESDE EL HTML
+  cambiarCamara(event: any) {
+    const deviceId = event.target.value;
+    this.dispositivoActual = this.camarasDisponibles.find(c => c.deviceId === deviceId);
+    this.cdr.detectChanges();
+  }
+
+  onPermisoRespuesta(permiso: boolean) {
+    console.log("¿Permiso de cámara concedido?:", permiso);
+    if (!permiso) {
+      alert("El navegador bloqueó la cámara. Verifica los permisos en la barra de direcciones.");
+    }
   }
 
   onEscaneoExitoso(resultadoQr: string) {
-    // Si ya estamos procesando un código, ignoramos cualquier otra lectura de la cámara
     if (this.procesando) return;
 
     this.procesando = true;
@@ -52,7 +80,6 @@ export class Asistencia {
         console.error("Error devuelto por Laravel:", err);
         this.reproducirSonido('error');
 
-        // 🟢 MEJORA: Capturamos el mensaje de error exacto de Laravel
         const mensajeError = err?.error?.message || err?.message || 'Error de comunicación con el servidor';
         this.abrirVentanaFlotante(true, mensajeError);
       }
@@ -70,20 +97,16 @@ export class Asistencia {
     this.datosTrabajador = datos;
     this.mostrarModal = true;
 
-    // 🟢 FORZAMOS A ANGULAR A MOSTRAR LA VENTANA
     this.cdr.detectChanges();
 
     setTimeout(() => {
       this.mostrarModal = false;
-      // 🟢 FORZAMOS A ANGULAR A OCULTAR LA VENTANA
       this.cdr.detectChanges();
 
-      // 🟢 MEJORA: Damos 1.5 segundos extras "de gracia" antes de desbloquear el escáner
-      // Esto evita que lea el mismo QR apenas desaparece la ventana si el trabajador no ha retirado el fotocheck
       setTimeout(() => {
         this.procesando = false;
       }, 1500);
 
-    }, 2000); // La ventana dura 2 segundos
+    }, 2000);
   }
 }

@@ -24,9 +24,10 @@
         <div class="bg-gray-900 text-white px-5 py-3 font-semibold text-center tracking-wider">
             ACERQUE EL FOTOCHECK
         </div>
-        <div class="p-4 bg-black flex justify-center relative">
-            <zxing-scanner [enable]="scannerHabilitado" (scanSuccess)="onEscaneoExitoso($event)"
-                class="w-full"></zxing-scanner>
+
+        <div class="p-4 bg-black flex justify-center relative min-h-[300px]">
+            <zxing-scanner *ngIf="scannerHabilitado" (scanSuccess)="onEscaneoExitoso($event)" class="w-full">
+            </zxing-scanner>
         </div>
     </div>
 

@@ -15,7 +15,7 @@ import { Asistencia } from './components/asistencia/asistencia';
 //dashboard
 import { Dashboard } from './pages/dashboard/dashboard';
 
-// TODO: Importar estos componentes cuando se creen en el futuro:
+// TODO: Importar estos componentes cuando se creen en el futuro::
 // import { CotizacionesComponent } from './components/cotizaciones/cotizaciones.component';
 // import { ReportesComponent } from './components/reportes/reportes.component';
 
