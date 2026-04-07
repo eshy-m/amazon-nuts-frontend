@@ -14,6 +14,8 @@ import { AsistenciaService } from '../../services/asistencia';
 export class Asistencia {
   scannerHabilitado = false;
   procesando = false;
+  // 🟢 NUEVO: Variable para el input manual
+  codigoManual: string = '';
 
   // 🟢 NUEVAS VARIABLES PARA MANEJAR MÚLTIPLES CÁMARAS
   camarasDisponibles: MediaDeviceInfo[] = [];
@@ -60,6 +62,19 @@ export class Asistencia {
     if (!permiso) {
       alert("El navegador bloqueó la cámara. Verifica los permisos en la barra de direcciones.");
     }
+  }
+  // 🟢 NUEVO: Función para el botón manual
+  registrarManual() {
+    if (!this.codigoManual || this.codigoManual.trim() === '') {
+      this.abrirVentanaFlotante(true, 'Por favor, ingrese un código o DNI.');
+      return;
+    }
+
+    // Enviamos el texto ingresado a la misma función que usa el QR
+    this.onEscaneoExitoso(this.codigoManual.trim());
+
+    // Limpiamos el input después de enviar
+    this.codigoManual = '';
   }
 
   onEscaneoExitoso(resultadoQr: string) {
