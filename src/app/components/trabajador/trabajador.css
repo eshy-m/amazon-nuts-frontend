@@ -1,7 +1,24 @@
+/* Animación suave para cuando aparecen los modales */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* ===== ESTILOS PARA IMPRESIÓN ===== */
 @media print {
 
-    /* Ocultamos el menú lateral, el header y el formulario */
+    /* Ocultamos TODO el dashboard, botones y fondos oscuros de los modales */
     .no-print,
     aside,
     header,
@@ -9,36 +26,20 @@
         display: none !important;
     }
 
-    /* Quitamos márgenes y paddings globales para aprovechar la hoja */
+    /* Reseteamos los márgenes del body para que encaje perfecto en el papel */
     body,
-    main,
-    .admin-page,
-    .print-container {
+    html {
         margin: 0 !important;
         padding: 0 !important;
         background-color: white !important;
-        width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
     }
 
-    /* Forzamos a la grilla a comportarse bien en papel A4 */
-    .print-container .grid {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 15px !important;
-        justify-content: flex-start !important;
-    }
-
-    .fotocheck-wrapper {
-        page-break-inside: avoid;
-        /* Evita que un fotocheck se parta en dos páginas */
-        margin-bottom: 10px;
-    }
-
+    /* El Fotocheck pierde bordes redondos y sombras innecesarias para ahorrar tinta */
     .print-card {
-        border: 1px solid #ccc !important;
+        border: 1px solid #000 !important;
         box-shadow: none !important;
-        /* Quitamos sombras en papel para ahorrar tinta */
+        border-radius: 0 !important;
+        margin: 0 !important;
+        page-break-inside: avoid;
     }
 }

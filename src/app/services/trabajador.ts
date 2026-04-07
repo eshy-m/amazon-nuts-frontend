@@ -2,23 +2,38 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class TrabajadorService {
-  // Apunta a http://localhost:8000/api/trabajadores según tu environment local
+
   private url = `${environment.apiUrl}/trabajadores`;
 
   constructor(private http: HttpClient) { }
 
-  // Obtiene la lista de todos los trabajadores y sus QR
-  listar(): Observable<any[]> {
-    return this.http.get<any[]>(this.url);
-
+  // 📊 Llama a la ruta de estadísticas
+  getEstadisticas(): Observable<any> {
+    return this.http.get(`${this.url}/estadisticas`);
   }
 
-  // Envía los datos del formulario al backend para crear un trabajador y generar su QR
+  // 📋 Obtiene la lista de todos los trabajadores
+  listar(): Observable<any> {
+    return this.http.get(this.url);
+  }
+
+  // ➕ Envía los datos para crear un trabajador
   registrar(datos: any): Observable<any> {
-    return this.http.post<any>(this.url, datos);
+    return this.http.post(this.url, datos);
+  }
+
+  // ✏️ Envía los datos para actualizar un trabajador existente
+  actualizar(id: number, datos: any): Observable<any> {
+    return this.http.put(`${this.url}/${id}`, datos);
+  }
+
+  // 🗑️ Elimina a un trabajador por su ID
+  eliminar(id: number): Observable<any> {
+    return this.http.delete(`${this.url}/${id}`);
   }
 }
