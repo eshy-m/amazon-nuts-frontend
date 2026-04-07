@@ -70,7 +70,7 @@ export class Asistencia {
       return;
     }
 
-    // Enviamos el texto ingresado a la misma función que usa el QR
+    // Enviamos el texto ingresado a la misma función que usa EL QR
     this.onEscaneoExitoso(this.codigoManual.trim());
 
     // Limpiamos el input después de enviar
