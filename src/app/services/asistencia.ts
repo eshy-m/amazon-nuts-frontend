@@ -1,19 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment'; // <-- Importamos el environment
+import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AsistenciaService {
-  // Toma la URL base del environment y le agrega el prefijo del módulo
+  // Ajusta la URL a tu entorno de producción (Hostinger)
   private apiUrl = environment.apiUrl + '/asistencias';
+  //private apiUrl = 'https://eshypro.com/backend/public/api/asistencias';
 
   constructor(private http: HttpClient) { }
 
-  // Envía el DNI y el área al backend de Laravel
-  registrarAsistencia(dni: string, area_trabajo: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/registrar`, { dni, area_trabajo });
+  // Ahora solo mandamos el código del QR al backend (trabajador_id)
+  registrarAsistencia(qrCode: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/registrar`, { trabajador_id: qrCode });
   }
 }
