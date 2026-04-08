@@ -65,7 +65,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   iniciarReloj() {
     this.intervaloReloj = setInterval(() => {
       this.horaActual = new Date();
-      this.cdr.detectChanges(); // 🔥 OBLIGATORIO: Avisa a Angular que la hora cambió para que actualice el HTML
+      this.cdr.detectChanges(); // OBLIGATORIO: Avisa a Angular que la hora cambió para que actualice el HTML
     }, 1000);
   }
 
