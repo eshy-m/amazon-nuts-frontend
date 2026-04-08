@@ -84,9 +84,39 @@ export class Asistencia implements OnInit {
   }
 
   // ==========================================
+  // 📷 CONTROL DE DISPOSITIVOS (CÁMARAS)
+  // ==========================================
+
+  // 🔥 ACTUALIZADO: Detecta cámaras y elige AUTOMÁTICAMENTE la trasera
+  onCamarasEncontradas(camaras: MediaDeviceInfo[]) {
+    this.camarasDisponibles = camaras;
+
+    if (camaras && camaras.length > 0) {
+      // 🕵️‍♂️ Lógica para buscar la cámara trasera (environment / back / trasera)
+      // Convertimos el label a minúsculas para una búsqueda más segura
+      const camaraTrasera = camaras.find(camara =>
+        camara.label.toLowerCase().includes('back') ||
+        camara.label.toLowerCase().includes('environment') ||
+        camara.label.toLowerCase().includes('trasera')
+      );
+
+      // Si encuentra una que coincida con la descripción trasera, la usa.
+      // Sino, usa la primera disponible por defecto.
+      if (camaraTrasera) {
+        this.dispositivoActual = camaraTrasera;
+        console.log('✅ Cámara trasera seleccionada automáticamente:', camaraTrasera.label);
+      } else {
+        this.dispositivoActual = camaras[0];
+        console.log('⚠️ No se identificó cámara trasera explícita. Usando por defecto:', camaras[0].label);
+      }
+    }
+  }
+
+  // ==========================================
   // ⌨️ MÉTODOS DE REGISTRO
   // ==========================================
-  guardarManual() {
+
+  registroManual() {
     // Limpieza de espacios y validación segura
     const codigoSeguro = String(this.codigoManual || '').trim();
 

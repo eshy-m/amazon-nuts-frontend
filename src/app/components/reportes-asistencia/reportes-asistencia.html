@@ -6,12 +6,11 @@
     </div>
 
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-end">
-
         <div class="flex-1 min-w-[200px]">
             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Buscar Trabajador / DNI</label>
             <input type="text" [(ngModel)]="busqueda" (keyup.enter)="buscarReportes()"
                 placeholder="Ej. Juan Pérez o 7244..."
-                class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 outline-none">
         </div>
 
         <div>
@@ -25,67 +24,75 @@
         </div>
 
         <button (click)="buscarReportes()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2">
-            <span>Buscar</span>
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-colors">
+            🔍 Buscar
         </button>
     </div>
 
-    <div class="grid grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
-            <p class="text-sm text-gray-500 font-bold uppercase">Registros Encontrados</p>
-            <p class="text-3xl font-black text-gray-800">{{ historial.length }}</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
-            <p class="text-sm text-gray-500 font-bold uppercase">Total Horas Trabajadas</p>
-            <p class="text-3xl font-black text-gray-800">{{ totalHorasFiltradas | number:'1.1-2' }} <span
-                    class="text-lg text-gray-400">hrs</span></p>
+    <div class="mb-4 flex justify-between items-center text-gray-600 text-sm">
+        <p>Mostrando <b>{{ historial.length }}</b> registros encontrados.</p>
+        <p class="font-bold">Total Horas: <span class="text-green-700">{{ totalHorasFiltradas }} h</span></p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse min-w-[900px]">
+                <thead>
+                    <tr class="bg-gray-800 text-white border-b border-gray-200">
+                        <th class="py-3 px-4 font-bold text-sm">FECHA</th>
+                        <th class="py-3 px-4 font-bold text-sm">DNI</th>
+                        <th class="py-3 px-4 font-bold text-sm">TRABAJADOR</th>
+                        <th class="py-3 px-4 font-bold text-sm">ÁREA</th>
+                        <th class="py-3 px-4 font-bold text-sm text-center">ENTRADA</th>
+                        <th class="py-3 px-4 font-bold text-sm text-center">SALIDA</th>
+                        <th class="py-3 px-4 font-bold text-sm text-center">HORAS</th>
+                        <th class="py-3 px-4 font-bold text-sm text-center">ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngIf="cargando">
+                        <td colspan="8" class="text-center py-10">
+                            <div
+                                class="animate-spin rounded-full h-8 w-8 border-4 border-green-600 border-t-transparent mx-auto mb-2">
+                            </div>
+                            <p class="text-gray-500 font-bold">Cargando datos...</p>
+                        </td>
+                    </tr>
+
+                    <tr *ngFor="let h of historial" class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 text-gray-600 font-medium">{{ h.fecha }}</td>
+                        <td class="py-3 px-4 text-gray-500 font-mono text-sm">{{ h.trabajador.dni }}</td>
+                        <td class="py-3 px-4 text-gray-600 font-medium">{{ h.trabajador.apellidos }}, {{
+                            h.trabajador.nombres }}</td>
+                        <td class="py-3 px-4 text-gray-500 text-sm">{{ h.area_trabajo }}</td>
+                        <td class="py-3 px-4 text-center font-mono text-sm">{{ h.hora_entrada }}</td>
+                        <td class="py-3 px-4 text-center font-mono text-sm"
+                            [ngClass]="{'text-red-500 font-bold': !h.hora_salida}">
+                            {{ h.hora_salida || 'Sin Marcar' }}
+                        </td>
+                        <td class="py-3 px-4 text-center font-bold text-gray-700">
+                            {{ h.horas_trabajadas ? h.horas_trabajadas + ' h' : '--' }}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span *ngIf="h.estado === 'Puntual'"
+                                class="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-bold">Puntual</span>
+                            <span *ngIf="h.estado === 'Tarde'"
+                                class="text-orange-600 bg-orange-50 px-2 py-1 rounded text-xs font-bold">Tarde</span>
+                            <span *ngIf="h.estado !== 'Puntual' && h.estado !== 'Tarde'"
+                                class="text-gray-600 bg-gray-100 px-2 py-1 rounded text-xs font-bold">{{ h.estado
+                                }}</span>
+                        </td>
+                    </tr>
+
+                    <tr *ngIf="historial.length === 0 && !cargando">
+                        <td colspan="8" class="text-center py-10 text-gray-400 font-medium">
+                            No se encontraron registros para esta búsqueda.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-
-        <div *ngIf="cargando" class="absolute inset-0 bg-white bg-opacity-80 flex justify-center items-center z-10">
-            <p class="font-bold text-blue-600 animate-pulse">Cargando datos...</p>
-        </div>
-
-        <table class="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-                <tr class="bg-gray-100 text-gray-600 border-b border-gray-200">
-                    <th class="py-3 px-4 font-bold text-xs uppercase">Fecha</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase">Trabajador</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase">Área</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase text-center">Entrada</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase text-center">Salida</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase text-center">Horas</th>
-                    <th class="py-3 px-4 font-bold text-xs uppercase text-center">Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let h of historial" class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 font-semibold text-gray-800">{{ h.fecha }}</td>
-                    <td class="py-3 px-4 text-gray-600 font-medium">{{ h.trabajador.apellidos }}, {{
-                        h.trabajador.nombres }}</td>
-                    <td class="py-3 px-4 text-gray-500 text-sm">{{ h.area_trabajo }}</td>
-                    <td class="py-3 px-4 text-center font-mono text-sm">{{ h.hora_entrada }}</td>
-                    <td class="py-3 px-4 text-center font-mono text-sm"
-                        [ngClass]="{'text-red-500 font-bold': !h.hora_salida}">
-                        {{ h.hora_salida || 'Sin Marcar' }}
-                    </td>
-                    <td class="py-3 px-4 text-center font-bold text-gray-700">
-                        {{ h.horas_trabajadas ? h.horas_trabajadas + ' h' : '--' }}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <span *ngIf="h.estado === 'Puntual'"
-                            class="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-bold">Puntual</span>
-                        <span *ngIf="h.estado === 'Tarde'"
-                            class="text-orange-600 bg-orange-50 px-2 py-1 rounded text-xs font-bold">Tarde</span>
-                    </td>
-                </tr>
-                <tr *ngIf="historial.length === 0 && !cargando">
-                    <td colspan="7" class="py-12 text-center text-gray-500">No se encontraron registros para estas
-                        fechas.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>

@@ -13,134 +13,167 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-                <tr class="bg-gray-800 text-white border-b border-gray-200">
-                    <th class="py-4 px-4 font-bold text-sm uppercase">DNI</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase">Trabajador</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase">Área</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Entrada</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Salida</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Estado</th>
-                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Horas</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let a of listaHoy" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 font-semibold text-gray-800">{{ a.trabajador.dni }}</td>
-                    <td class="py-3 px-4 text-gray-600 font-medium">{{ a.trabajador.apellidos }}, {{
-                        a.trabajador.nombres }}</td>
-                    <td class="py-3 px-4 text-gray-500">{{ a.area_trabajo }}</td>
-                    <td class="py-3 px-4 text-center font-mono font-bold text-blue-600">{{ a.hora_entrada }}</td>
-                    <td class="py-3 px-4 text-center font-mono font-bold text-red-500">{{ a.hora_salida || '--:--:--' }}
-                    </td>
 
-                    <td class="py-3 px-4 text-center">
-                        <span *ngIf="a.estado === 'Puntual'"
-                            class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">🟢
-                            Puntual</span>
-                        <span *ngIf="a.estado === 'Tarde'"
-                            class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">🟠
-                            Tarde</span>
-                        <span *ngIf="!a.hora_salida"
-                            class="ml-2 bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-xs border border-blue-200">En
-                            planta</span>
-                    </td>
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse min-w-[900px]">
+                <thead>
+                    <tr class="bg-green-950 text-white border-b border-green-800">
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">DNI</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Trabajador</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider">Hora Entrada</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider">Hora Salida</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider">Horas</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider">Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let asis of listaHoy" class="hover:bg-gray-50 transition-colors">
 
-                    <td class="py-3 px-4 text-center font-bold text-gray-700">
-                        {{ a.horas_trabajadas ? a.horas_trabajadas + ' h' : '--' }}
-                    </td>
-                </tr>
+                        <td class="py-3 px-4 font-mono text-gray-500">{{ asis.trabajador?.dni }}</td>
 
-                <tr *ngIf="listaHoy.length === 0">
-                    <td colspan="7" class="py-12 text-center text-gray-500 text-lg">Aún no hay registros de asistencia
-                        el día de hoy.</td>
-                </tr>
-            </tbody>
-        </table>
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-gray-700">
+                                {{ asis.trabajador?.apellidos }}, {{ asis.trabajador?.nombres }}
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1 font-semibold tracking-wide uppercase">
+                                {{ asis.trabajador?.tipo_contrato || 'Estable' }} / {{ asis.area_trabajo }}
+                            </div>
+                        </td>
+
+                        <td class="py-3 px-4 text-center font-mono text-sm text-green-700 font-bold">
+                            {{ asis.hora_entrada }}
+                        </td>
+
+                        <td class="py-3 px-4 text-center font-mono text-sm"
+                            [ngClass]="asis.hora_salida ? 'text-blue-700 font-bold' : 'text-gray-400'">
+                            {{ asis.hora_salida || '--:--:--' }}
+                        </td>
+
+                        <td class="py-3 px-4 text-center font-bold text-gray-700">
+                            {{ asis.horas_trabajadas ? asis.horas_trabajadas + ' h' : '--' }}
+                        </td>
+
+                        <td class="py-3 px-4 text-center">
+                            <span *ngIf="asis.estado === 'Puntual'"
+                                class="text-green-600 bg-green-50 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+                                Puntual
+                            </span>
+                            <span *ngIf="asis.estado === 'Tarde'"
+                                class="text-orange-600 bg-orange-50 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+                                Tarde
+                            </span>
+                            <span *ngIf="asis.estado !== 'Puntual' && asis.estado !== 'Tarde'"
+                                class="text-gray-600 bg-gray-100 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
+                                {{ asis.estado || '---' }}
+                            </span>
+                        </td>
+
+                    </tr>
+
+                    <tr *ngIf="listaHoy.length === 0">
+                        <td colspan="6" class="py-8 text-center text-gray-400 font-medium">
+                            No hay registros de asistencia el día de hoy.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
-    <div *ngIf="mostrarModalScanner"
-        class="fixed inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+</div>
 
-            <div class="bg-gray-900 p-4 flex justify-between items-center text-white">
-                <h3 class="font-bold text-lg flex items-center gap-2">📷 Escáner de Fotocheck</h3>
-                <button (click)="cerrarScanner()"
-                    class="text-gray-400 hover:text-white text-2xl leading-none">✕</button>
+<div *ngIf="mostrarModalScanner"
+    class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl overflow-hidden w-full max-w-md shadow-2xl relative">
+        <button (click)="cerrarScanner()"
+            class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10 bg-white rounded-full p-1 transition-colors">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="p-6 bg-gray-50 border-b border-gray-100">
+            <h3 class="text-xl font-black text-gray-800 text-center">Escanear Fotocheck</h3>
+            <p class="text-center text-gray-500 text-sm mt-1">Coloca el código QR en el recuadro</p>
+        </div>
+
+        <div class="relative bg-black aspect-square flex items-center justify-center">
+            <zxing-scanner *ngIf="scannerHabilitado" [enable]="scannerHabilitado" [device]="dispositivoActual"
+                (camerasFound)="onCamarasEncontradas($event)" (scanSuccess)="onEscaneoExitoso($event)"
+                class="w-full h-full object-cover">
+            </zxing-scanner>
+            <div *ngIf="procesando"
+                class="absolute inset-0 bg-white/80 flex items-center justify-center backdrop-blur-sm z-10">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-green-600 border-t-transparent"></div>
             </div>
+            <div
+                class="absolute inset-0 border-[6px] border-green-500/50 rounded-2xl m-8 pointer-events-none animation-pulse-slow">
+            </div>
+        </div>
 
-            <div class="p-6 flex flex-col items-center">
-                <div
-                    class="w-full max-w-sm aspect-square bg-black rounded-xl overflow-hidden shadow-inner relative border-4 border-gray-100 mb-6">
-                    <zxing-scanner *ngIf="scannerHabilitado" [device]="dispositivoActual"
-                        (camerasFound)="camarasDisponibles = $event" (scanSuccess)="onEscaneoExitoso($event)"
-                        class="w-full h-full object-cover">
-                    </zxing-scanner>
-                    <div class="absolute inset-0 border-2 border-white opacity-30 rounded-lg m-8 pointer-events-none">
-                    </div>
-                    <div
-                        class="absolute inset-0 border-2 border-green-500 opacity-50 rounded-lg m-12 pointer-events-none animate-pulse">
-                    </div>
-                </div>
-
-                <div class="w-full max-w-sm">
-                    <p class="text-center text-sm text-gray-500 font-bold mb-2">¿Problemas con el código QR?</p>
-                    <div class="flex gap-2">
-                        <input type="text" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="codigoManual"
-                            (keyup.enter)="guardarManual()" placeholder="Ingrese DNI manual..."
-                            class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:ring-0 outline-none text-center font-bold tracking-widest text-lg">
-
-                        <button (click)="guardarManual()" [disabled]="procesando"
-                            class="bg-gray-800 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors disabled:opacity-50">
-                            Registrar
-                        </button>
-                    </div>
+        <div class="p-5 bg-gray-50 border-t border-gray-200">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Registro Manual
+                    (DNI):</label>
+                <div class="flex gap-2">
+                    <input type="text" [(ngModel)]="codigoManual" placeholder="Escriba el DNI..."
+                        class="flex-1 border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 font-mono text-center text-lg shadow-inner"
+                        (keyup.enter)="registroManual()">
+                    <button (click)="registroManual()"
+                        class="bg-green-600 hover:bg-green-700 text-white px-6 rounded-lg font-bold transition-colors">
+                        ENVIAR
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div *ngIf="mostrarModalRespuesta"
-        class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 transition-opacity">
+<div *ngIf="mostrarModalRespuesta"
+    class="fixed inset-0 flex items-center justify-center z-[60] bg-black/60 backdrop-blur-sm p-4">
+    <div class="animate-bounce-in w-full max-w-sm flex flex-col items-center">
 
-        <div *ngIf="!esError"
-            class="bg-white rounded-3xl shadow-2xl overflow-hidden w-11/12 max-w-sm transform scale-100 transition-transform">
-            <div class="bg-green-600 text-white p-6 text-center">
+        <div *ngIf="!esError" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full">
+            <div class="bg-green-600 text-white p-6 text-center border-b-[6px] border-green-700">
                 <div
-                    class="w-20 h-20 bg-white text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner text-4xl">
-                    ✓</div>
-                <h3 class="text-3xl font-black mb-1 uppercase tracking-wider">{{ datosTrabajador?.estado }} REGISTRADA
-                </h3>
+                    class="w-20 h-20 bg-white text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black">{{ mensajeModal }}</h3>
             </div>
-            <div class="p-6 text-center">
-                <h4 class="text-2xl font-black text-gray-800 leading-tight mb-1">{{ datosTrabajador?.nombres }}</h4>
-                <p class="text-md text-gray-500 uppercase font-bold mb-6">{{ datosTrabajador?.apellidos }}</p>
+            <div class="p-6 text-center bg-white">
+                <p class="text-sm text-gray-400 font-bold uppercase mb-1 tracking-wider">Trabajador</p>
+                <p class="text-2xl font-black text-gray-800 leading-none">{{ datosTrabajador?.nombres }}</p>
+                <p class="text-md text-gray-500 uppercase font-bold mb-6 tracking-tight">{{ datosTrabajador?.apellidos
+                    }}</p>
                 <div class="flex gap-3">
-                    <div class="bg-green-50 border border-green-100 px-4 py-2 rounded-xl flex-1">
-                        <p class="text-xs text-green-600 font-bold uppercase">Área</p>
+                    <div class="bg-green-50 border border-green-100 px-4 py-2 rounded-xl flex-1 shadow-inner">
+                        <p class="text-xs text-green-600 font-bold uppercase tracking-wider">Área</p>
                         <p class="font-black text-gray-800 text-lg">{{ datosTrabajador?.area }}</p>
                     </div>
-                    <div class="bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl flex-1">
-                        <p class="text-xs text-gray-500 font-bold uppercase">Hora</p>
+                    <div class="bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl flex-1 shadow-inner">
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Hora</p>
                         <p class="font-black text-gray-800 text-lg font-mono">{{ datosTrabajador?.hora }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div *ngIf="esError" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-11/12 max-w-sm">
-            <div class="bg-red-600 text-white p-6 text-center">
+        <div *ngIf="esError" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full">
+            <div class="bg-red-600 text-white p-6 text-center border-b-[6px] border-red-700">
                 <div
-                    class="w-20 h-20 bg-white text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner text-4xl">
-                    ✕</div>
-                <h3 class="text-2xl font-black mb-1 uppercase tracking-wider">ERROR DE REGISTRO</h3>
+                    class="w-20 h-20 bg-white text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner text-4xl font-bold">
+                    ✕
+                </div>
+                <h3 class="text-2xl font-black">ACCESO DENEGADO</h3>
             </div>
-            <div class="p-8 text-center">
-                <p class="text-lg font-bold text-gray-700">{{ mensajeModal }}</p>
+            <div class="p-6 text-center bg-white">
+                <p class="text-red-700 font-bold text-lg leading-snug">{{ mensajeModal }}</p>
             </div>
         </div>
 
     </div>
-
 </div>
