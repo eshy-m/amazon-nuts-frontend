@@ -1,81 +1,122 @@
-<div class="max-w-4xl mx-auto pb-8 relative mt-6">
+<div class="w-full bg-gray-50 min-h-screen p-6 print:p-0">
 
-    <div class="text-center mb-8">
-        <h2 class="text-4xl font-bold text-gray-800 mb-6">Control de Asistencia</h2>
-
-        <button *ngIf="!scannerHabilitado" (click)="activarEscaner()"
-            class="bg-green-700 hover:bg-green-800 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-transform transform hover:scale-105 text-xl">
-            <svg class="w-6 h-6 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z">
-                </path>
-            </svg>
-            Iniciar Lector QR
-        </button>
-
-        <button *ngIf="scannerHabilitado" (click)="finalizarControl()"
-            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow transition-colors text-lg">
-            Finalizar Control
-        </button>
-    </div>
-
-    <div *ngIf="scannerHabilitado"
-        class="bg-white rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden max-w-lg mx-auto mb-8">
-        <div class="bg-gray-900 text-white px-5 py-3 font-semibold text-center tracking-wider">
-            ACERQUE EL FOTOCHECK
-        </div>
-
-        <div class="p-4 bg-black flex justify-center relative min-h-[300px]">
-            <zxing-scanner *ngIf="scannerHabilitado" (scanSuccess)="onEscaneoExitoso($event)" class="w-full">
-            </zxing-scanner>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden max-w-lg mx-auto">
-        <div class="bg-gray-800 text-white px-5 py-3 font-semibold text-center tracking-wider">
-            REGISTRO MANUAL DE ASISTENCIA
-        </div>
-
-        <div class="p-6 flex flex-col gap-4">
-            <p class="text-sm text-gray-500 text-center">
-                Si el lector de QR no funciona o el trabajador no tiene su fotocheck, ingrese su código o DNI aquí.
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-black text-gray-800 tracking-tight">Asistencia Diaria</h1>
+            <p class="text-sm text-gray-500 mt-1">Monitoreo en vivo del personal ({{ listaHoy.length }} registros hoy)
             </p>
-
-            <input type="text" [(ngModel)]="codigoManual" (keyup.enter)="registrarManual()" placeholder="Ej: 71234567"
-                class="w-full p-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 text-2xl text-center font-bold tracking-widest text-gray-800 uppercase transition-all">
-
-            <button (click)="registrarManual()" [disabled]="procesando"
-                class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-4 px-4 rounded-xl shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg flex justify-center items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ procesando ? 'PROCESANDO...' : 'REGISTRAR MANUALMENTE' }}
-            </button>
         </div>
+        <button (click)="abrirScanner()"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2 text-lg">
+            📷 Registrar Asistencia
+        </button>
     </div>
 
-    <div *ngIf="mostrarModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+                <tr class="bg-gray-800 text-white border-b border-gray-200">
+                    <th class="py-4 px-4 font-bold text-sm uppercase">DNI</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase">Trabajador</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase">Área</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Entrada</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Salida</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Estado</th>
+                    <th class="py-4 px-4 font-bold text-sm uppercase text-center">Horas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let a of listaHoy" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="py-3 px-4 font-semibold text-gray-800">{{ a.trabajador.dni }}</td>
+                    <td class="py-3 px-4 text-gray-600 font-medium">{{ a.trabajador.apellidos }}, {{
+                        a.trabajador.nombres }}</td>
+                    <td class="py-3 px-4 text-gray-500">{{ a.area_trabajo }}</td>
+                    <td class="py-3 px-4 text-center font-mono font-bold text-blue-600">{{ a.hora_entrada }}</td>
+                    <td class="py-3 px-4 text-center font-mono font-bold text-red-500">{{ a.hora_salida || '--:--:--' }}
+                    </td>
 
-        <div *ngIf="!esError"
-            class="bg-white rounded-3xl shadow-2xl overflow-hidden w-11/12 max-w-sm transform transition-all scale-100">
-            <div class="bg-green-500 text-white p-5 text-center">
-                <svg class="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-3xl font-extrabold">{{ datosTrabajador?.estado }}</h3>
+                    <td class="py-3 px-4 text-center">
+                        <span *ngIf="a.estado === 'Puntual'"
+                            class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">🟢
+                            Puntual</span>
+                        <span *ngIf="a.estado === 'Tarde'"
+                            class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">🟠
+                            Tarde</span>
+                        <span *ngIf="!a.hora_salida"
+                            class="ml-2 bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-xs border border-blue-200">En
+                            planta</span>
+                    </td>
+
+                    <td class="py-3 px-4 text-center font-bold text-gray-700">
+                        {{ a.horas_trabajadas ? a.horas_trabajadas + ' h' : '--' }}
+                    </td>
+                </tr>
+
+                <tr *ngIf="listaHoy.length === 0">
+                    <td colspan="7" class="py-12 text-center text-gray-500 text-lg">Aún no hay registros de asistencia
+                        el día de hoy.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div *ngIf="mostrarModalScanner"
+        class="fixed inset-0 bg-black bg-opacity-70 z-40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+
+            <div class="bg-gray-900 p-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-lg flex items-center gap-2">📷 Escáner de Fotocheck</h3>
+                <button (click)="cerrarScanner()"
+                    class="text-gray-400 hover:text-white text-2xl leading-none">✕</button>
             </div>
 
-            <div class="p-6 text-center">
-                <p class="text-gray-400 text-sm font-bold tracking-widest uppercase mb-1">Trabajador</p>
-                <p class="text-2xl font-black text-gray-800 leading-tight mb-5">
-                    {{ datosTrabajador?.nombres }}<br>{{ datosTrabajador?.apellidos }}
-                </p>
+            <div class="p-6 flex flex-col items-center">
+                <div
+                    class="w-full max-w-sm aspect-square bg-black rounded-xl overflow-hidden shadow-inner relative border-4 border-gray-100 mb-6">
+                    <zxing-scanner *ngIf="scannerHabilitado" [device]="dispositivoActual"
+                        (camerasFound)="camarasDisponibles = $event" (scanSuccess)="onEscaneoExitoso($event)"
+                        class="w-full h-full object-cover">
+                    </zxing-scanner>
+                    <div class="absolute inset-0 border-2 border-white opacity-30 rounded-lg m-8 pointer-events-none">
+                    </div>
+                    <div
+                        class="absolute inset-0 border-2 border-green-500 opacity-50 rounded-lg m-12 pointer-events-none animate-pulse">
+                    </div>
+                </div>
 
-                <div class="flex justify-center gap-3">
+                <div class="w-full max-w-sm">
+                    <p class="text-center text-sm text-gray-500 font-bold mb-2">¿Problemas con el código QR?</p>
+                    <div class="flex gap-2">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="codigoManual"
+                            (keyup.enter)="guardarManual()" placeholder="Ingrese DNI manual..."
+                            class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:ring-0 outline-none text-center font-bold tracking-widest text-lg">
+
+                        <button (click)="guardarManual()" [disabled]="procesando"
+                            class="bg-gray-800 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors disabled:opacity-50">
+                            Registrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="mostrarModalRespuesta"
+        class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 transition-opacity">
+
+        <div *ngIf="!esError"
+            class="bg-white rounded-3xl shadow-2xl overflow-hidden w-11/12 max-w-sm transform scale-100 transition-transform">
+            <div class="bg-green-600 text-white p-6 text-center">
+                <div
+                    class="w-20 h-20 bg-white text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner text-4xl">
+                    ✓</div>
+                <h3 class="text-3xl font-black mb-1 uppercase tracking-wider">{{ datosTrabajador?.estado }} REGISTRADA
+                </h3>
+            </div>
+            <div class="p-6 text-center">
+                <h4 class="text-2xl font-black text-gray-800 leading-tight mb-1">{{ datosTrabajador?.nombres }}</h4>
+                <p class="text-md text-gray-500 uppercase font-bold mb-6">{{ datosTrabajador?.apellidos }}</p>
+                <div class="flex gap-3">
                     <div class="bg-green-50 border border-green-100 px-4 py-2 rounded-xl flex-1">
                         <p class="text-xs text-green-600 font-bold uppercase">Área</p>
                         <p class="font-black text-gray-800 text-lg">{{ datosTrabajador?.area }}</p>
@@ -90,16 +131,13 @@
 
         <div *ngIf="esError" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-11/12 max-w-sm">
             <div class="bg-red-600 text-white p-6 text-center">
-                <svg class="w-20 h-20 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <h3 class="text-3xl font-black">ERROR</h3>
+                <div
+                    class="w-20 h-20 bg-white text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner text-4xl">
+                    ✕</div>
+                <h3 class="text-2xl font-black mb-1 uppercase tracking-wider">ERROR DE REGISTRO</h3>
             </div>
-
             <div class="p-8 text-center">
-                <p class="text-xl font-bold text-gray-800">{{ mensajeModal }}</p>
-                <p class="text-gray-500 font-medium mt-3">Por favor, intente de nuevo.</p>
+                <p class="text-lg font-bold text-gray-700">{{ mensajeModal }}</p>
             </div>
         </div>
 

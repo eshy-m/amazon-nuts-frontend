@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
@@ -11,117 +11,136 @@ import { AsistenciaService } from '../../services/asistencia';
   templateUrl: './asistencia.html',
   styleUrls: ['./asistencia.css']
 })
-export class Asistencia {
-  scannerHabilitado = false;
-  procesando = false;
-  // 🟢 NUEVO: Variable para el input manual
-  codigoManual: string = '';
+export class Asistencia implements OnInit {
+  // ==========================================
+  // 📊 VARIABLES DE DATOS
+  // ==========================================
+  listaHoy: any[] = []; // Almacena los registros del día actual
 
-  // 🟢 NUEVAS VARIABLES PARA MANEJAR MÚLTIPLES CÁMARAS
+  // ==========================================
+  // 📷 VARIABLES DEL ESCÁNER Y MODAL
+  // ==========================================
+  mostrarModalScanner = false;
+  scannerHabilitado = false;
+  procesando = false; // Bloquea múltiples escaneos accidentales
+  codigoManual: string = ''; // Modelo para el input de DNI manual
+
   camarasDisponibles: MediaDeviceInfo[] = [];
   dispositivoActual: MediaDeviceInfo | undefined;
 
-  mostrarModal = false;
+  // ==========================================
+  // 🪟 VARIABLES DE RESPUESTA (ÉXITO/ERROR)
+  // ==========================================
+  mostrarModalRespuesta = false;
   esError = false;
   mensajeModal = '';
   datosTrabajador: any = null;
 
   constructor(
-    private asistenciaService: AsistenciaService,
+    private api: AsistenciaService,
     private cdr: ChangeDetectorRef
   ) { }
 
-  activarEscaner() {
-    this.scannerHabilitado = true;
+  ngOnInit(): void {
+    this.cargarTablaHoy();
   }
 
-  finalizarControl() {
+  // ==========================================
+  // 🔄 MÉTODOS DE DATOS (TABLA)
+  // ==========================================
+  cargarTablaHoy() {
+    this.api.obtenerAsistenciasHoy().subscribe({
+      next: (res) => {
+        this.listaHoy = res.data;
+        this.cdr.detectChanges(); // Actualizamos la vista
+      },
+      error: (err) => console.error('Error al cargar la tabla de hoy:', err)
+    });
+  }
+
+  // ==========================================
+  // 🪟 CONTROL DE VENTANAS (MODALES Y CÁMARA)
+  // ==========================================
+  abrirScanner() {
+    this.mostrarModalScanner = true;
+
+    // Pequeño retraso para que Angular dibuje el modal antes de encender la cámara
+    setTimeout(() => {
+      this.scannerHabilitado = true;
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
+  cerrarScanner() {
+    // 1. Apagamos la cámara primero para liberar hardware
     this.scannerHabilitado = false;
     this.dispositivoActual = undefined;
-  }
 
-  // 🟢 GUARDAMOS TODAS LAS CÁMARAS
-  onCamarasEncontradas(camaras: MediaDeviceInfo[]) {
-    console.log("Cámaras encontradas:", camaras);
-    this.camarasDisponibles = camaras;
-    if (camaras && camaras.length > 0) {
-      this.dispositivoActual = camaras[0]; // Intenta con la primera por defecto
+    // 2. Esperamos a que se apague antes de ocultar el modal
+    setTimeout(() => {
+      this.mostrarModalScanner = false;
       this.cdr.detectChanges();
-    }
+    }, 200);
   }
 
-  // 🟢 FUNCIÓN PARA CAMBIAR DE CÁMARA DESDE EL HTML
-  cambiarCamara(event: any) {
-    const deviceId = event.target.value;
-    this.dispositivoActual = this.camarasDisponibles.find(c => c.deviceId === deviceId);
-    this.cdr.detectChanges();
-  }
+  // ==========================================
+  // ⌨️ MÉTODOS DE REGISTRO
+  // ==========================================
+  guardarManual() {
+    // Limpieza de espacios y validación segura
+    const codigoSeguro = String(this.codigoManual || '').trim();
 
-  onPermisoRespuesta(permiso: boolean) {
-    console.log("¿Permiso de cámara concedido?:", permiso);
-    if (!permiso) {
-      alert("El navegador bloqueó la cámara. Verifica los permisos en la barra de direcciones.");
-    }
-  }
-  // 🟢 NUEVO: Función para el botón manual
-  registrarManual() {
-    if (!this.codigoManual || this.codigoManual.trim() === '') {
-      this.abrirVentanaFlotante(true, 'Por favor, ingrese un código o DNI.');
+    if (!codigoSeguro || codigoSeguro === '') {
+      alert('Ingrese un DNI válido.');
       return;
     }
 
-    // Enviamos el texto ingresado a la misma función que usa EL QR
-    this.onEscaneoExitoso(this.codigoManual.trim());
-
-    // Limpiamos el input después de enviar
-    this.codigoManual = '';
+    // Disparamos la misma función que usa el QR
+    this.onEscaneoExitoso(codigoSeguro);
+    this.codigoManual = ''; // Limpiamos el input
   }
 
   onEscaneoExitoso(resultadoQr: string) {
-    if (this.procesando) return;
+    if (this.procesando) return; // Evita peticiones duplicadas
 
     this.procesando = true;
     this.cdr.detectChanges();
 
-    console.log("Enviando QR al servidor:", resultadoQr);
-
-    this.asistenciaService.registrarAsistencia(resultadoQr).subscribe({
+    this.api.registrarAsistencia(resultadoQr).subscribe({
       next: (res) => {
-        console.log("Respuesta Exitosa de Laravel:", res);
         this.reproducirSonido('exito');
-        this.abrirVentanaFlotante(false, res.message, res.data);
+        this.mostrarResultado(false, res.message, res.data);
+        this.cargarTablaHoy(); // Recargamos la tabla al instante
       },
       error: (err) => {
-        console.error("Error devuelto por Laravel:", err);
         this.reproducirSonido('error');
-
-        const mensajeError = err?.error?.message || err?.message || 'Error de comunicación con el servidor';
-        this.abrirVentanaFlotante(true, mensajeError);
+        const mensajeError = err?.error?.message || 'Error de comunicación';
+        this.mostrarResultado(true, mensajeError);
       }
     });
   }
 
+  // ==========================================
+  // 🔔 FEEDBACK VISUAL Y SONORO
+  // ==========================================
   reproducirSonido(tipo: 'exito' | 'error') {
     const audio = new Audio(`assets/sounds/${tipo}.mp3`);
-    audio.play().catch(e => console.error('Error reproduciendo audio:', e));
+    audio.play().catch(e => console.error('Audio bloqueado por navegador:', e));
   }
 
-  abrirVentanaFlotante(esError: boolean, mensaje: string, datos: any = null) {
+  mostrarResultado(esError: boolean, mensaje: string, datos: any = null) {
     this.esError = esError;
     this.mensajeModal = mensaje;
     this.datosTrabajador = datos;
-    this.mostrarModal = true;
 
-    this.cdr.detectChanges();
+    this.mostrarModalRespuesta = true;
+    this.cdr.detectChanges(); // Forzamos aparición inmediata
 
+    // Ocultar automáticamente tras 3.5 segundos
     setTimeout(() => {
-      this.mostrarModal = false;
+      this.mostrarModalRespuesta = false;
+      this.procesando = false;
       this.cdr.detectChanges();
-
-      setTimeout(() => {
-        this.procesando = false;
-      }, 1500);
-
-    }, 2000);
+    }, 3500);
   }
 }

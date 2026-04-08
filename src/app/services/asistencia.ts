@@ -7,20 +7,22 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AsistenciaService {
-  // Ajusta la URL a tu entorno de producción (Hostinger)
   private apiUrl = environment.apiUrl + '/asistencias';
-  //private apiUrl = 'https://eshypro.com/backend/public/api/asistencias';
 
   constructor(private http: HttpClient) { }
 
-  // Ahora solo mandamos el código del QR al backend (trabajador_id)
+  // 📋 NUEVO: Obtener la tabla del día de hoy
+  obtenerAsistenciasHoy(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/hoy`);
+  }
+
+  // 📷 Registrar mediante QR o DNI manual
   registrarAsistencia(qrCode: string): Observable<any> {
     const body = { trabajador_id: qrCode };
-    // 🟢 NUEVO: Forzamos a Laravel a tratarnos como una API pura
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     });
-    return this.http.post(`${this.apiUrl}/registrar`, body);
+    return this.http.post(`${this.apiUrl}/registrar`, body, { headers });
   }
 }
