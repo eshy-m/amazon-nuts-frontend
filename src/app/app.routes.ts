@@ -17,7 +17,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 
 // TODO: Importar estos componentes cuando se creen en el futuro::
 // import { CotizacionesComponent } from './components/cotizaciones/cotizaciones.component';
-// import { ReportesComponent } from './components/reportes/reportes.component';
+import { ReportesAsistenciaComponent } from './components/reportes-asistencia/reportes-asistencia';
 
 export const routes: Routes = [
     // ==========================================
@@ -48,7 +48,7 @@ export const routes: Routes = [
             { path: 'asistencia', component: Asistencia },
             // 🚀 Próximos módulos (Descomentar cuando se creen):
             // { path: 'cotizaciones', component: CotizacionesComponent },
-            // { path: 'reportes', component: ReportesComponent },
+            { path: 'reportes-asistencia', component: ReportesAsistenciaComponent },
         ]
     },
 

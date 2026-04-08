@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 
@@ -24,5 +24,16 @@ export class AsistenciaService {
       'Accept': 'application/json'
     });
     return this.http.post(`${this.apiUrl}/registrar`, body, { headers });
+  }
+  obtenerReportes(fechaInicio: string, fechaFin: string, busqueda: string = ''): Observable<any> {
+    let params = new HttpParams()
+      .set('fecha_inicio', fechaInicio)
+      .set('fecha_fin', fechaFin);
+
+    if (busqueda) {
+      params = params.set('busqueda', busqueda);
+    }
+
+    return this.http.get(`${this.apiUrl}/reportes`, { params });
   }
 }
