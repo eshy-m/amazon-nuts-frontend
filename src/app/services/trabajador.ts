@@ -26,7 +26,14 @@ export class TrabajadorService {
   registrar(datos: any): Observable<any> {
     return this.http.post(this.url, datos);
   }
+  // En tu archivo del Servicio (TrabajadorService)
+  actualizarConFoto(id: number, formData: FormData) {
+    // Le decimos a Laravel que lo trate como una actualización (PUT) aunque viaje por POST
+    formData.append('_method', 'PUT');
 
+    // OJO: Usamos POST aquí
+    return this.http.post(`${this.url}/${id}`, formData);
+  }
   // ✏️ Envía los datos para actualizar un trabajador existente
   actualizar(id: number, datos: any): Observable<any> {
     return this.http.put(`${this.url}/${id}`, datos);

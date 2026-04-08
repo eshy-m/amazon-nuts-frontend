@@ -16,7 +16,7 @@ import { TrabajadorService } from '../../services/trabajador';
 })
 export class TrabajadorComponent implements OnInit {
 
-  // URL base para los QRs (viene de los environments)
+  // URL base para los QRs y Fotos (viene de los environments)
   public baseStorageUrl: string = environment.storageUrl;
 
   // 📊 Variables para la Vista (Dashboard)
@@ -30,7 +30,11 @@ export class TrabajadorComponent implements OnInit {
   public trabajadorSeleccionado: any = null;
   public esEdicion = false; // Define si el modal es para Crear o Editar
 
-  // Objeto del formulario (Con todos los campos nuevos)
+  // 🔥 Variables para manejar la Foto de Perfil
+  public fotoSeleccionada: File | null = null;
+  public fotoPreview: string | ArrayBuffer | null = null;
+
+  // Objeto del formulario
   public form: any = this.obtenerFormularioVacio();
 
   constructor(
@@ -42,98 +46,140 @@ export class TrabajadorComponent implements OnInit {
     this.cargarDatos();
   }
 
-  // 🔄 Carga principal de datos (Lista + Estadísticas)
-  cargarDatos(): void {
-    this.obtenerTrabajadores();
-    this.obtenerEstadisticas();
-  }
+  // ==========================================
+  // 🔄 CARGA DE DATOS
+  // ==========================================
+  cargarDatos() {
+    this.api.listar().subscribe((res: any) => {
+      this.lista = res.data;
+      this.cdr.detectChanges();
+    });
 
-  // 📋 Obtener la lista
-  obtenerTrabajadores(): void {
-    this.api.listar().subscribe({
-      next: (res: any) => {
-        this.lista = res.data ? res.data : res;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error al obtener los trabajadores:', err)
+    this.api.getEstadisticas().subscribe((res: any) => {
+      this.estadisticas = res.data.por_area;
+      this.totalPersonal = res.data.total;
+      this.cdr.detectChanges();
     });
   }
 
-  // 📊 Obtener Estadísticas
-  obtenerEstadisticas(): void {
-    if (this.api.getEstadisticas) {
-      this.api.getEstadisticas().subscribe({
-        next: (res: any) => {
-          this.estadisticas = res.data.por_area;
-          this.totalPersonal = res.data.total;
-          this.cdr.detectChanges();
-        },
-        error: (err) => console.error('Error al cargar estadísticas:', err)
-      });
-    }
+  // ==========================================
+  // 🪟 CONTROL DE MODALES
+  // ==========================================
+  obtenerFormularioVacio() {
+    return {
+      id: null,
+      dni: '',
+      nombres: '',
+      apellidos: '',
+      area: '',
+      genero: '',
+      fecha_nacimiento: '',
+      celular: '',
+      direccion: '',
+      fecha_inicio: '',
+      condicion_laboral: 'Estable' // 🔥 Por defecto Estable
+    };
   }
 
-  // ---------------------------------------------------
-  // 🪟 CONTROL DE MODALES Y ACCIONES CRUD
-  // ---------------------------------------------------
-
-  // ➕ Abre modal para NUEVO
-  abrirModalNuevo(): void {
+  abrirModalNuevo() {
     this.esEdicion = false;
     this.form = this.obtenerFormularioVacio();
+    this.fotoSeleccionada = null;
+    this.fotoPreview = null;
     this.mostrarModalForm = true;
   }
 
-  // ✏️ Abre modal para EDITAR
-  editarTrabajador(t: any): void {
+  editar(t: any) {
     this.esEdicion = true;
-    this.form = { ...t }; // Copia los datos para no afectar la tabla directamente
+    this.form = { ...t }; // Clonamos los datos
+
+    // 🔥 Si tiene foto en la BD, la mostramos en la vista previa
+    if (t.foto) {
+      this.fotoPreview = this.baseStorageUrl + t.foto;
+    } else {
+      this.fotoPreview = null;
+    }
+    this.fotoSeleccionada = null; // Reseteamos el archivo físico
+
     this.mostrarModalForm = true;
   }
 
-  // 🗑️ Acción de ELIMINAR
-  eliminarTrabajador(id: number): void {
-    if (confirm('¿Estás seguro de que deseas eliminar a este trabajador? Esta acción no se puede deshacer.')) {
-      this.api.eliminar(id).subscribe({
-        next: () => {
-          alert('Trabajador eliminado correctamente.');
-          this.cargarDatos(); // Recargar datos
-        },
-        error: () => alert('Error al eliminar el trabajador.')
-      });
-    }
-  }
-
-  // Cierra el modal de formulario
-  cerrarModalForm(): void {
+  cerrarModalForm() {
     this.mostrarModalForm = false;
+    this.form = this.obtenerFormularioVacio();
+    this.fotoSeleccionada = null;
+    this.fotoPreview = null;
   }
 
-  // Abre el modal de FOTOCHECK
-  verFotocheck(trabajador: any): void {
-    this.trabajadorSeleccionado = trabajador;
+  abrirModalFotocheck(t: any) {
+    this.trabajadorSeleccionado = t;
     this.mostrarModalFotocheck = true;
   }
 
-  cerrarModalFotocheck(): void {
+  cerrarModalFotocheck() {
     this.mostrarModalFotocheck = false;
     this.trabajadorSeleccionado = null;
   }
 
-  // 💾 Función GUARDAR (Sirve para Crear y Actualizar)
-  guardar(): void {
-    if (!this.form.dni || this.form.dni.toString().length !== 8) {
+  // ==========================================
+  // 📷 LÓGICA DE LA FOTO
+  // ==========================================
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      // Máximo 2MB
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es muy pesada. Máximo 2MB.');
+        return;
+      }
+      this.fotoSeleccionada = file;
+
+      // Generar vista previa circular
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.fotoPreview = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // ==========================================
+  // 💾 GUARDAR / ACTUALIZAR (Usando FormData)
+  // ==========================================
+  guardar() {
+    // Validaciones básicas
+    if (!this.form.dni || String(this.form.dni).length !== 8) {
       alert('El DNI debe tener exactamente 8 dígitos.');
       return;
     }
-    if (!this.form.area || !this.form.genero) {
+    if (!this.form.area || !this.form.genero || !this.form.nombres || !this.form.apellidos) {
       alert('Por favor, completa los campos obligatorios (Área, Género, Nombres, Apellidos).');
       return;
     }
 
+    // 🔥 EMPAQUETAMOS TODO EN UN FORMDATA PARA PODER ENVIAR LA IMAGEN AL BACKEND
+    const formData = new FormData();
+    formData.append('dni', this.form.dni);
+    formData.append('nombres', this.form.nombres);
+    formData.append('apellidos', this.form.apellidos);
+    formData.append('area', this.form.area);
+    formData.append('genero', this.form.genero);
+    formData.append('condicion_laboral', this.form.condicion_laboral);
+
+    // Adjuntamos opcionales solo si tienen texto
+    if (this.form.celular) formData.append('celular', this.form.celular);
+    if (this.form.direccion) formData.append('direccion', this.form.direccion);
+    if (this.form.fecha_nacimiento) formData.append('fecha_nacimiento', this.form.fecha_nacimiento);
+    if (this.form.fecha_inicio) formData.append('fecha_inicio', this.form.fecha_inicio);
+
+    // Adjuntamos la foto si el usuario subió una
+    if (this.fotoSeleccionada) {
+      formData.append('foto', this.fotoSeleccionada);
+    }
+
     if (this.esEdicion) {
-      // PROCESO DE ACTUALIZAR
-      this.api.actualizar(this.form.id, this.form).subscribe({
+      // 🌟 Usamos el nuevo método del servicio
+      this.api.actualizarConFoto(this.form.id, formData).subscribe({
         next: () => {
           alert('¡Trabajador actualizado con éxito!');
           this.cerrarModalForm();
@@ -141,12 +187,11 @@ export class TrabajadorComponent implements OnInit {
         },
         error: (err) => {
           console.error(err);
-          alert('Error al actualizar. Verifica que el DNI no esté duplicado.');
+          alert('Error al actualizar. Verifica los datos.');
         }
       });
     } else {
-      // PROCESO DE CREAR
-      this.api.registrar(this.form).subscribe({
+      this.api.registrar(formData as any).subscribe({
         next: () => {
           alert('¡Trabajador registrado y QR generado con éxito!');
           this.cerrarModalForm();
@@ -160,24 +205,26 @@ export class TrabajadorComponent implements OnInit {
     }
   }
 
+  // ==========================================
+  // 🗑️ ELIMINAR
+  // ==========================================
+  eliminar(id: number) {
+    if (confirm('¿Estás seguro de eliminar este trabajador?')) {
+      this.api.eliminar(id).subscribe({
+        next: () => {
+          alert('Trabajador eliminado.');
+          this.cargarDatos();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error al eliminar.');
+        }
+      });
+    }
+  }
+
   // 🖨️ Imprimir
   imprimirFotocheck(): void {
     window.print();
-  }
-
-  // 🧹 Formulario Vacío con los campos nuevos
-  private obtenerFormularioVacio(): any {
-    return {
-      nombres: '',
-      apellidos: '',
-      dni: '',
-      genero: '',
-      area: '',
-      celular: '',
-      direccion: '',
-      experiencia: false,
-      observaciones: '',
-      fecha_inicio: ''
-    };
   }
 }

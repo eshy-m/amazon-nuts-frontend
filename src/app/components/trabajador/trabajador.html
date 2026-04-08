@@ -21,192 +21,264 @@
         </div>
 
         <div *ngFor="let stat of estadisticas"
-            class="bg-white p-5 rounded-xl border-l-4 border-blue-500 shadow-sm flex items-center gap-4">
-            <div class="text-4xl">🏢</div>
+            class="bg-white p-5 rounded-xl border-l-4 border-green-600 shadow-sm flex items-center gap-4">
+            <div
+                class="text-3xl bg-green-50 text-green-600 w-12 h-12 flex items-center justify-center rounded-full font-bold">
+                {{ stat.area.charAt(0) }}
+            </div>
             <div>
                 <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">{{ stat.area }}</p>
-                <h3 class="text-2xl font-black text-gray-800">{{ stat.total }} <span
-                        class="text-sm font-normal text-gray-400">pers.</span></h3>
+                <h3 class="text-2xl font-black text-gray-800">{{ stat.total }}</h3>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto no-print">
-        <table class="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">DNI</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">Apellidos y Nombres</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">F. Ingreso</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">Dirección</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">Celular</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase">Área</th>
-                    <th class="py-4 px-4 font-bold text-gray-600 text-sm uppercase text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let t of lista" class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 font-semibold text-gray-800">{{ t.dni }}</td>
-                    <td class="py-3 px-4 text-gray-600">{{ t.apellidos }}, {{ t.nombres }}</td>
-                    <td class="py-3 px-4 text-gray-500 text-sm">{{ t.fecha_inicio | date:'dd/MM/yyyy' }}</td>
-                    <td class="py-3 px-4 text-gray-500 text-sm truncate max-w-[150px]" title="{{ t.direccion }}">{{
-                        t.direccion || '-' }}</td>
-                    <td class="py-3 px-4 text-gray-500 text-sm">{{ t.celular || '-' }}</td>
-                    <td class="py-3 px-4">
-                        <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ t.area
-                            }}</span>
-                    </td>
-                    <td class="py-3 px-4 flex justify-center gap-2">
-                        <button (click)="verFotocheck(t)"
-                            class="p-2 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition-colors"
-                            title="Ver Fotocheck">🪪</button>
-                        <button (click)="editarTrabajador(t)"
-                            class="p-2 bg-gray-100 hover:bg-yellow-100 hover:text-yellow-700 rounded-md transition-colors"
-                            title="Editar">✏️</button>
-                        <button (click)="eliminarTrabajador(t.id)"
-                            class="p-2 bg-gray-100 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors"
-                            title="Eliminar">🗑️</button>
-                    </td>
-                </tr>
-                <tr *ngIf="lista.length === 0">
-                    <td colspan="7" class="py-8 text-center text-gray-500">No hay trabajadores registrados.</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse min-w-[900px]">
+                <thead>
+                    <tr class="bg-green-950 text-white border-b border-green-800">
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">DNI</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Trabajador</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Condición / Área</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Celular</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider text-right">Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let t of lista" class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 font-mono text-gray-500 font-bold">{{ t.dni }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-300">
+                                    <img *ngIf="t.foto" [src]="baseStorageUrl + t.foto"
+                                        class="w-full h-full object-cover">
+                                    <span *ngIf="!t.foto"
+                                        class="w-full h-full flex items-center justify-center text-xs">👤</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-700 leading-tight">{{ t.apellidos }}</p>
+                                    <p class="text-sm text-gray-500">{{ t.nombres }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold mr-2">{{
+                                t.condicion_laboral || 'Estable' }}</span>
+                            <span class="text-sm text-gray-600">{{ t.area }}</span>
+                        </td>
+                        <td class="py-3 px-4 text-gray-600 text-sm">{{ t.celular || '---' }}</td>
+                        <td class="py-3 px-4 text-right space-x-2">
+                            <button (click)="abrirModalFotocheck(t)"
+                                class="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                title="Ver Fotocheck">
+                                🪪 QR
+                            </button>
+                            <button (click)="editar(t)"
+                                class="text-amber-600 hover:bg-amber-50 px-2 py-1 rounded transition-colors"
+                                title="Editar">
+                                ✏️
+                            </button>
+                            <button (click)="eliminar(t.id)"
+                                class="text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                                title="Eliminar">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="lista.length === 0">
+                        <td colspan="5" class="py-8 text-center text-gray-400 font-medium">No hay trabajadores
+                            registrados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div *ngIf="mostrarModalForm"
-        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 no-print">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[95vh]">
+        class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-bounce-in max-h-[90vh] flex flex-col">
 
-            <div class="bg-gray-800 p-3 sm:p-4 flex justify-between items-center text-white shrink-0 rounded-t-xl">
-                <h3 class="font-bold text-sm sm:text-base">{{ esEdicion ? 'Editar Trabajador' : 'Nuevo Trabajador' }}
-                </h3>
+            <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-black text-xl">{{ esEdicion ? 'Editar Trabajador' : 'Nuevo Trabajador' }}</h3>
                 <button (click)="cerrarModalForm()"
-                    class="text-gray-300 hover:text-white text-xl leading-none">✕</button>
+                    class="text-gray-300 hover:text-white text-2xl leading-none">&times;</button>
             </div>
 
-            <div class="p-4 sm:p-6 overflow-y-auto">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">DNI *</label>
-                        <input type="number" [(ngModel)]="form.dni" [disabled]="esEdicion"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none disabled:bg-gray-100 text-sm sm:text-base">
-                    </div>
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Fecha de Ingreso</label>
-                        <input type="date" [(ngModel)]="form.fecha_inicio"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base">
-                    </div>
+            <div class="p-6 overflow-y-auto flex-1">
 
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Nombres *</label>
-                        <input type="text" [(ngModel)]="form.nombres"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base">
+                <div class="flex flex-col items-center justify-center mb-6">
+                    <div class="relative group cursor-pointer" (click)="fileInput.click()">
+                        <div
+                            class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-md bg-gray-50 flex items-center justify-center">
+                            <img *ngIf="fotoPreview" [src]="fotoPreview" class="w-full h-full object-cover">
+                            <span *ngIf="!fotoPreview" class="text-5xl text-gray-300">👤</span>
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 bg-green-600 rounded-full p-2 text-white shadow-lg group-hover:bg-green-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 16.5v2.5h2.5l11-11-2.5-2.5-11 11zM16 5l3 3" />
+                            </svg>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Apellidos *</label>
-                        <input type="text" [(ngModel)]="form.apellidos"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base">
-                    </div>
+                    <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-wider">Clic para subir foto</p>
+                    <input type="file" #fileInput (change)="onFileSelected($event)"
+                        accept="image/png, image/jpeg, image/jpg" class="hidden">
+                </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Género *</label>
-                        <select [(ngModel)]="form.genero"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none bg-white text-sm sm:text-base">
-                            <option value="" disabled>Seleccionar...</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Femenino">Femenino</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">DNI <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" [(ngModel)]="form.dni" maxlength="8"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Celular</label>
-                        <input type="text" [(ngModel)]="form.celular"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Dirección</label>
-                        <input type="text" [(ngModel)]="form.direccion"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Área Asignada *</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Área <span
+                                class="text-red-500">*</span></label>
                         <select [(ngModel)]="form.area"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none bg-white text-sm sm:text-base">
-                            <option value="" disabled>Seleccione un área</option>
-                            <option value="Producción">Producción</option>
-                            <option value="Almacén">Almacén</option>
-                            <option value="Administración">Administración</option>
-                            <option value="Limpieza">Limpieza</option>
-                            <option value="Seguridad">Seguridad</option>
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
+                            <option value="">Seleccione...</option>
+                            <option value="Planta">Planta</option>
+                            <option value="Seleccion">Selección</option>
+                            <option value="Quebrado">Quebrado</option>
+                            <option value="Administracion">Administración</option>
                         </select>
                     </div>
 
-                    <div class="flex items-center mt-4 sm:mt-6">
-                        <input type="checkbox" [(ngModel)]="form.experiencia" id="exp"
-                            class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 rounded focus:ring-green-500 outline-none cursor-pointer">
-                        <label for="exp" class="ml-2 font-bold text-gray-700 cursor-pointer text-xs sm:text-sm">¿Tiene
-                            experiencia previa?</label>
-                    </div>
-
                     <div class="md:col-span-2">
-                        <label class="block text-xs sm:text-sm font-bold text-gray-700 mb-1">Observaciones</label>
-                        <textarea [(ngModel)]="form.observaciones" rows="2"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none text-sm sm:text-base"></textarea>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Condición Laboral <span
+                                class="text-red-500">*</span></label>
+                        <div class="flex gap-4">
+                            <label
+                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
+                                <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion"
+                                    value="Estable" class="text-green-600 focus:ring-green-500">
+                                <span class="font-bold text-gray-700 text-sm">Estable (Planilla)</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
+                                <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion"
+                                    value="Eventual" class="text-green-600 focus:ring-green-500">
+                                <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombres <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" [(ngModel)]="form.nombres"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Apellidos <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" [(ngModel)]="form.apellidos"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Género <span
+                                class="text-red-500">*</span></label>
+                        <select [(ngModel)]="form.genero"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
+                            <option value="">Seleccione...</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Celular</label>
+                        <input type="text" [(ngModel)]="form.celular"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                 </div>
 
-                <div class="mt-4 sm:mt-6">
-                    <button (click)="guardar()"
-                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base">
-                        {{ esEdicion ? 'Actualizar Cambios' : 'Guardar Trabajador' }}
-                    </button>
+                <hr class="my-4">
+                <p class="text-sm font-bold text-gray-500 mb-3">Datos Opcionales</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dirección</label>
+                        <input type="text" [(ngModel)]="form.direccion"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">F. Nacimiento</label>
+                        <input type="date" [(ngModel)]="form.fecha_nacimiento"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">F. Inicio Contrato</label>
+                        <input type="date" [(ngModel)]="form.fecha_inicio"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
                 </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 shrink-0 border-t border-gray-200">
+                <button (click)="cerrarModalForm()"
+                    class="px-5 py-2 text-gray-600 font-bold hover:bg-gray-200 rounded-lg transition-colors">Cancelar</button>
+                <button (click)="guardar()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold shadow transition-colors">
+                    {{ esEdicion ? 'Actualizar' : 'Guardar' }}
+                </button>
             </div>
         </div>
     </div>
 
     <div *ngIf="mostrarModalFotocheck && trabajadorSeleccionado"
-        class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 print:relative print:bg-white print:inset-auto print:block">
+        class="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4">
 
-        <div class="absolute top-4 right-4 flex gap-2 no-print">
+        <div class="w-full max-w-sm flex justify-between items-center mb-4 no-print">
             <button (click)="imprimirFotocheck()"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg">
+                class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 flex items-center gap-2">
                 🖨️ Imprimir
             </button>
             <button (click)="cerrarModalFotocheck()"
-                class="bg-white hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold shadow-lg">
-                Cerrar
-            </button>
+                class="bg-red-500 text-white w-10 h-10 rounded-full font-bold text-xl shadow hover:bg-red-600">&times;</button>
         </div>
 
         <div
-            class="bg-white rounded-xl shadow-2xl w-72 overflow-hidden flex flex-col border border-gray-200 print-card print:mx-auto">
+            class="print-area bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] h-[500px] border border-gray-200">
+
             <div class="bg-white border-b-4 border-green-700 p-4 text-center">
                 <img src="https://eshypro.com/img/log.png" alt="Amazon Nuts Logo" class="h-10 mx-auto object-contain">
             </div>
 
             <div class="py-6 px-4 flex-grow flex flex-col items-center">
+
                 <div
-                    class="w-16 h-16 rounded-full border-2 border-gray-200 shadow-sm mb-3 bg-gray-100 flex items-center justify-center text-3xl">
-                    👤</div>
-                <h6 class="font-black text-gray-800 text-center uppercase leading-tight">{{
+                    class="w-24 h-24 rounded-full border-4 border-gray-200 shadow-sm bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
+                    <img *ngIf="trabajadorSeleccionado.foto" [src]="baseStorageUrl + trabajadorSeleccionado.foto"
+                        class="w-full h-full object-cover">
+                    <span *ngIf="!trabajadorSeleccionado.foto" class="text-4xl">👤</span>
+                </div>
+
+                <h6 class="font-black text-gray-800 text-center uppercase leading-tight text-lg">{{
                     trabajadorSeleccionado.nombres }}</h6>
-                <p class="text-xs text-gray-500 text-center mt-1 uppercase font-medium mb-4">{{
+                <p class="text-sm text-gray-500 text-center mt-1 uppercase font-medium mb-4">{{
                     trabajadorSeleccionado.apellidos }}</p>
 
-                <div class="w-32 h-32 bg-white p-1 border border-gray-200 rounded-lg flex items-center justify-center">
+                <div
+                    class="w-36 h-36 bg-white p-2 border border-gray-200 rounded-xl flex items-center justify-center shadow-inner">
                     <img [src]="baseStorageUrl + 'qrcodes/' + trabajadorSeleccionado.dni + '.svg'" alt="QR"
                         class="w-full h-full object-contain">
                 </div>
             </div>
 
-            <div class="bg-green-950 text-white text-center py-2 mt-auto">
-                <span class="block text-xs tracking-wider opacity-80">DNI: {{ trabajadorSeleccionado.dni }}</span>
-                <span class="block text-sm font-bold uppercase">{{ trabajadorSeleccionado.area || 'PERSONAL' }}</span>
+            <div class="bg-green-950 text-white text-center py-3 mt-auto">
+                <span class="block text-sm font-bold uppercase tracking-widest">{{ trabajadorSeleccionado.area }}</span>
+                <span class="block text-[10px] text-green-300 font-mono mt-1">DNI: {{ trabajadorSeleccionado.dni
+                    }}</span>
             </div>
         </div>
+
     </div>
+
 </div>
