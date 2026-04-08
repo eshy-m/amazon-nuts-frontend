@@ -38,16 +38,23 @@
                 </svg>
             </button>
 
-            <div class="hidden lg:block"></div>
+            <div class="flex-1"></div>
 
             <div class="flex items-center gap-4 lg:gap-6">
+
+                <div class="hidden md:flex flex-col items-end justify-center pr-4 border-r border-gray-200">
+                    <span class="text-sm font-black text-green-800 font-mono tracking-widest leading-none mb-1">
+                        {{ horaActual | date:'HH:mm:ss' }}
+                    </span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                        {{ horaActual | date:'dd MMM yyyy' }}
+                    </span>
+                </div>
 
                 <button class="relative p-2 text-gray-400 hover:text-green-700 transition-colors">
                     <i class="bi bi-bell-fill text-xl"></i>
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                 </button>
-
-                <div class="h-6 w-px bg-gray-200 hidden sm:block"></div>
 
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:block text-right">
