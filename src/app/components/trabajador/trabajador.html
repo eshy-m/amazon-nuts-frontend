@@ -5,10 +5,21 @@
             <h1 class="text-3xl font-black text-gray-800 tracking-tight">Control de Personal</h1>
             <p class="text-sm text-gray-500 mt-1">Gestión de trabajadores y Fotochecks QR</p>
         </div>
-        <button (click)="abrirModalNuevo()"
-            class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
-            + Nuevo Trabajador
-        </button>
+
+        <div class="flex gap-3">
+            <button (click)="exportarExcel()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                📊 Excel
+            </button>
+            <button (click)="exportarPDF()"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                📄 PDF
+            </button>
+            <button (click)="abrirModalNuevo()"
+                class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                + Nuevo Trabajador
+            </button>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8 no-print">
@@ -23,11 +34,12 @@
         <div *ngFor="let stat of estadisticas"
             class="bg-white p-5 rounded-xl border-l-4 border-green-600 shadow-sm flex items-center gap-4">
             <div
-                class="text-3xl bg-green-50 text-green-600 w-12 h-12 flex items-center justify-center rounded-full font-bold">
-                {{ stat.area.charAt(0) }}
+                class="text-3xl bg-green-50 text-green-600 w-12 h-12 flex items-center justify-center rounded-full font-bold uppercase">
+                {{ stat.area.substring(0, 2) }}
             </div>
             <div>
-                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">{{ stat.area }}</p>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider truncate w-24" [title]="stat.area">{{
+                    stat.area }}</p>
                 <h3 class="text-2xl font-black text-gray-800">{{ stat.total }}</h3>
             </div>
         </div>
@@ -35,61 +47,88 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
         <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse min-w-[900px]">
+            <table class="w-full text-left border-collapse min-w-[1200px]">
                 <thead>
                     <tr class="bg-green-950 text-white border-b border-green-800">
-                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">DNI</th>
-                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Trabajador</th>
-                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Condición / Área</th>
-                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Celular</th>
-                        <th class="py-4 px-4 font-bold text-sm uppercase text-center tracking-wider text-right">Acciones
-                        </th>
+                        <th class="py-4 px-2 font-bold text-sm uppercase tracking-wider text-center">N°</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">DNI</th>
+                        <th class="py-4 px-16 font-bold text-sm uppercase tracking-wider text-center">Trabajador</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Área</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Fecha Inicio</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Contacto</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Dirección</th>
+                        <th class="py-4 px-2 font-bold text-sm uppercase tracking-wider text-center">Experiencia</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Observación</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <tr *ngFor="let t of lista" class="hover:bg-gray-50 transition-colors">
-                        <td class="py-3 px-4 font-mono text-gray-500 font-bold">{{ t.dni }}</td>
+                    <tr *ngFor="let t of lista; let i = index" class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 font-bold text-gray-700">{{ i + 1 }}</td>
+
+                        <td class="py-3 px-4">
+                            <div class="font-mono text-gray-700 font-bold">{{ t.dni }}</div>
+                        </td>
+
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-3">
                                 <div
-                                    class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-300">
+                                    class="w-9 h-9 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 border border-gray-300">
                                     <img *ngIf="t.foto" [src]="baseStorageUrl + t.foto"
                                         class="w-full h-full object-cover">
                                     <span *ngIf="!t.foto"
                                         class="w-full h-full flex items-center justify-center text-xs">👤</span>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-gray-700 leading-tight">{{ t.apellidos }}</p>
-                                    <p class="text-sm text-gray-500">{{ t.nombres }}</p>
+                                    <p class="font-bold text-gray-800 leading-tight">{{ t.apellidos }}</p>
+                                    <p class="text-xs text-gray-500">{{ t.nombres }}</p>
+                                    <div class="text-[11px] text-gray-400 mt-0.5 font-medium"
+                                        *ngIf="t.fecha_nacimiento">🎂 Nac: {{ t.fecha_nacimiento }}</div>
                                 </div>
                             </div>
                         </td>
+
                         <td class="py-3 px-4">
-                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold mr-2">{{
-                                t.condicion_laboral || 'Estable' }}</span>
-                            <span class="text-sm text-gray-600">{{ t.area }}</span>
+                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold block w-max">{{
+                                t.area }}</span>
                         </td>
-                        <td class="py-3 px-4 text-gray-600 text-sm">{{ t.celular || '---' }}</td>
-                        <td class="py-3 px-4 text-right space-x-2">
+                        <td class="py-3 px-4 text-sm text-gray-700 font-medium">
+                            <span *ngIf="t.fecha_inicio">📅 {{ t.fecha_inicio }}</span>
+                            <span *ngIf="!t.fecha_inicio" class="text-gray-300">---</span>
+                        </td>
+
+                        <td class="py-3 px-4">
+                            <div class="text-sm text-gray-700 font-medium">{{ t.celular || '---' }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="text-[12px] text-gray-600 truncate max-w-[150px]" [title]="t.direccion">{{
+                                t.direccion || '---' }}</div>
+                        </td>
+
+                        <td class="py-3 px-4 text-center">
+                            <span *ngIf="t.experiencia === 'SÍ'"
+                                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black tracking-wider">SÍ</span>
+                            <span *ngIf="t.experiencia !== 'SÍ'"
+                                class="bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider">NO</span>
+                        </td>
+
+                        <td class="py-3 px-4 text-gray-600 text-xs truncate max-w-[150px]" [title]="t.observaciones">{{
+                            t.observaciones || '---' }}</td>
+
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
                             <button (click)="abrirModalFotocheck(t)"
-                                class="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
-                                title="Ver Fotocheck">
-                                🪪 QR
-                            </button>
+                                class="text-blue-600 hover:bg-blue-50 px-2 py-1.5 rounded transition-colors"
+                                title="Ver Fotocheck">🪪 QR</button>
                             <button (click)="editar(t)"
-                                class="text-amber-600 hover:bg-amber-50 px-2 py-1 rounded transition-colors"
-                                title="Editar">
-                                ✏️
-                            </button>
+                                class="text-amber-600 hover:bg-amber-50 px-2 py-1.5 rounded transition-colors"
+                                title="Editar">✏️</button>
                             <button (click)="eliminar(t.id)"
-                                class="text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors"
-                                title="Eliminar">
-                                🗑️
-                            </button>
+                                class="text-red-600 hover:bg-red-50 px-2 py-1.5 rounded transition-colors"
+                                title="Eliminar">🗑️</button>
                         </td>
                     </tr>
                     <tr *ngIf="lista.length === 0">
-                        <td colspan="5" class="py-8 text-center text-gray-400 font-medium">No hay trabajadores
+                        <td colspan="10" class="py-8 text-center text-gray-400 font-medium">No hay trabajadores
                             registrados.</td>
                     </tr>
                 </tbody>
@@ -100,7 +139,7 @@
     <div *ngIf="mostrarModalForm"
         class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
         <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-bounce-in max-h-[90vh] flex flex-col">
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden animate-bounce-in max-h-[95vh] flex flex-col">
 
             <div class="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
                 <h3 class="font-black text-xl">{{ esEdicion ? 'Editar Trabajador' : 'Nuevo Trabajador' }}</h3>
@@ -130,7 +169,7 @@
                         accept="image/png, image/jpeg, image/jpg" class="hidden">
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">DNI <span
                                 class="text-red-500">*</span></label>
@@ -138,37 +177,23 @@
                             class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Área <span
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Nacimiento</label>
+                        <input type="date" [(ngModel)]="form.fecha_nacimiento"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Género <span
                                 class="text-red-500">*</span></label>
-                        <select [(ngModel)]="form.area"
+                        <select [(ngModel)]="form.genero"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
                             <option value="">Seleccione...</option>
-                            <option value="Planta">Planta</option>
-                            <option value="Seleccion">Selección</option>
-                            <option value="Quebrado">Quebrado</option>
-                            <option value="Administracion">Administración</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Condición Laboral <span
-                                class="text-red-500">*</span></label>
-                        <div class="flex gap-4">
-                            <label
-                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
-                                <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion"
-                                    value="Estable" class="text-green-600 focus:ring-green-500">
-                                <span class="font-bold text-gray-700 text-sm">Estable (Planilla)</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
-                                <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion"
-                                    value="Eventual" class="text-green-600 focus:ring-green-500">
-                                <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
-                            </label>
-                        </div>
-                    </div>
-
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombres <span
                                 class="text-red-500">*</span></label>
@@ -181,42 +206,89 @@
                         <input type="text" [(ngModel)]="form.apellidos"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
+                </div>
 
+                <hr class="my-5 border-gray-200">
+                <p class="text-sm font-black text-gray-700 mb-4 uppercase tracking-wider text-green-800">Datos Laborales
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Género <span
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Área / Cargo <span
                                 class="text-red-500">*</span></label>
-                        <select [(ngModel)]="form.genero"
+                        <select [(ngModel)]="form.area"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
                             <option value="">Seleccione...</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
+                            <option value="ADMINISTRADORA">ADMINISTRADORA</option>
+                            <option value="SUPERVISORA">SUPERVISORA</option>
+                            <option value="SELECCIÓN">SELECCIÓN</option>
+                            <option value="PROMOTOR">PROMOTOR</option>
+                            <option value="PRODUCCIÓN">PRODUCCIÓN</option>
+                            <option value="ANÁLISIS Y PROPUESTA">ANÁLISIS Y PROPUESTA</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Celular</label>
-                        <input type="text" [(ngModel)]="form.celular"
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Contrato</label>
+                        <input type="date" [(ngModel)]="form.fecha_inicio"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div class="flex items-end pb-1">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center justify-center">
+                                <input type="checkbox" [(ngModel)]="form.experiencia_bool"
+                                    class="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded checked:bg-green-600 checked:border-green-600 transition-colors cursor-pointer">
+                                <svg class="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <span
+                                class="text-sm font-bold text-gray-700 group-hover:text-green-700 transition-colors">¿Tiene
+                                experiencia?</span>
+                        </label>
                     </div>
                 </div>
 
-                <hr class="my-4">
-                <p class="text-sm font-bold text-gray-500 mb-3">Datos Opcionales</p>
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Condición Laboral <span
+                            class="text-red-500">*</span></label>
+                    <div class="flex gap-4">
+                        <label
+                            class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
+                            <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion" value="Estable"
+                                class="text-green-600 focus:ring-green-500">
+                            <span class="font-bold text-gray-700 text-sm">Estable (Planilla)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
+                            <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion" value="Eventual"
+                                class="text-green-600 focus:ring-green-500">
+                            <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
+                        </label>
+                    </div>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
+                <hr class="my-5 border-gray-200">
+                <p class="text-sm font-black text-gray-700 mb-4 uppercase tracking-wider text-green-800">Contacto y
+                    Observaciones</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">N° Celular</label>
+                        <input type="text" [(ngModel)]="form.celular"
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dirección</label>
                         <input type="text" [(ngModel)]="form.direccion"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">F. Nacimiento</label>
-                        <input type="date" [(ngModel)]="form.fecha_nacimiento"
-                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">F. Inicio Contrato</label>
-                        <input type="date" [(ngModel)]="form.fecha_inicio"
-                            class="w-full border border-gray-300 rounded-lg p-2 outline-none">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observación</label>
+                        <textarea [(ngModel)]="form.observaciones" rows="2"
+                            placeholder="Alergias, notas médicas, etc..."
+                            class="w-full border border-gray-300 rounded-lg p-2 outline-none"></textarea>
                     </div>
                 </div>
             </div>
@@ -234,51 +306,40 @@
 
     <div *ngIf="mostrarModalFotocheck && trabajadorSeleccionado"
         class="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4">
-
         <div class="w-full max-w-sm flex justify-between items-center mb-4 no-print">
             <button (click)="imprimirFotocheck()"
-                class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 flex items-center gap-2">
-                🖨️ Imprimir
-            </button>
+                class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 flex items-center gap-2">🖨️
+                Imprimir</button>
             <button (click)="cerrarModalFotocheck()"
                 class="bg-red-500 text-white w-10 h-10 rounded-full font-bold text-xl shadow hover:bg-red-600">&times;</button>
         </div>
-
         <div
             class="print-area bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] h-[500px] border border-gray-200">
-
             <div class="bg-white border-b-4 border-green-700 p-4 text-center">
                 <img src="https://eshypro.com/img/log.png" alt="Amazon Nuts Logo" class="h-10 mx-auto object-contain">
             </div>
-
             <div class="py-6 px-4 flex-grow flex flex-col items-center">
-
                 <div
                     class="w-24 h-24 rounded-full border-4 border-gray-200 shadow-sm bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
                     <img *ngIf="trabajadorSeleccionado.foto" [src]="baseStorageUrl + trabajadorSeleccionado.foto"
                         class="w-full h-full object-cover">
                     <span *ngIf="!trabajadorSeleccionado.foto" class="text-4xl">👤</span>
                 </div>
-
                 <h6 class="font-black text-gray-800 text-center uppercase leading-tight text-lg">{{
                     trabajadorSeleccionado.nombres }}</h6>
                 <p class="text-sm text-gray-500 text-center mt-1 uppercase font-medium mb-4">{{
                     trabajadorSeleccionado.apellidos }}</p>
-
                 <div
                     class="w-36 h-36 bg-white p-2 border border-gray-200 rounded-xl flex items-center justify-center shadow-inner">
                     <img [src]="baseStorageUrl + 'qrcodes/' + trabajadorSeleccionado.dni + '.svg'" alt="QR"
                         class="w-full h-full object-contain">
                 </div>
             </div>
-
             <div class="bg-green-950 text-white text-center py-3 mt-auto">
                 <span class="block text-sm font-bold uppercase tracking-widest">{{ trabajadorSeleccionado.area }}</span>
                 <span class="block text-[10px] text-green-300 font-mono mt-1">DNI: {{ trabajadorSeleccionado.dni
                     }}</span>
             </div>
         </div>
-
     </div>
-
 </div>
