@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-// 🔥 IMPORTACIONES PARA REPORTES (Asegúrate de tenerlas instaladas via npm)
+// 🔥 IMPORTACIONES PARA REPORTES Y FOTOCHECK
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -21,9 +21,17 @@ import { TrabajadorService } from '../../services/trabajador';
   templateUrl: './trabajador.html',
   styleUrls: ['./trabajador.css']
 })
-export class TrabajadorComponent implements OnInit {
+export class Trabajador implements OnInit {
 
   public baseStorageUrl: string = environment.storageUrl;
+
+  public mostrarModalImpresionMasiva = false;
+  abrirImpresionMasiva() {
+    this.mostrarModalImpresionMasiva = true;
+  }
+  imprimir() {
+    window.print();
+  }
 
   // Variables para la Vista
   public lista: any[] = [];
@@ -66,7 +74,7 @@ export class TrabajadorComponent implements OnInit {
   }
 
   // ==========================================
-  // LÓGICA DEL FORMULARIO (Se mantiene igual)
+  // LÓGICA DEL FORMULARIO (Se mantiene)
   // ==========================================
   obtenerFormularioVacio() {
     return { id: null, dni: '', nombres: '', apellidos: '', area: '', genero: '', condicion_laboral: 'Estable', celular: '', direccion: '', observaciones: '', fecha_nacimiento: '', fecha_inicio: '', experiencia_bool: false };
@@ -75,6 +83,8 @@ export class TrabajadorComponent implements OnInit {
   abrirModalNuevo() {
     this.esEdicion = false; this.form = this.obtenerFormularioVacio(); this.fotoSeleccionada = null; this.fotoPreview = null; this.mostrarModalForm = true;
   }
+
+  ////todo okeeey
 
   editar(t: any) {
     this.esEdicion = true; this.form = { ...t }; this.form.experiencia_bool = (t.experiencia === 'SÍ');
@@ -85,6 +95,7 @@ export class TrabajadorComponent implements OnInit {
   cerrarModalForm() {
     this.mostrarModalForm = false; this.form = this.obtenerFormularioVacio(); this.fotoSeleccionada = null; this.fotoPreview = null;
   }
+  //good
 
   abrirModalFotocheck(t: any) { this.trabajadorSeleccionado = t; this.mostrarModalFotocheck = true; }
   cerrarModalFotocheck() { this.mostrarModalFotocheck = false; this.trabajadorSeleccionado = null; }
@@ -99,7 +110,7 @@ export class TrabajadorComponent implements OnInit {
   }
 
   // ==========================================
-  // 💾 GUARDAR / ELIMINAR (Se mantiene igual)
+  // 💾 GUARDAR / ELIMINAR (Se mantiene)
   // ==========================================
   guardar() {
     if (!this.form.dni || String(this.form.dni).length !== 8) { alert('El DNI debe tener exactamente 8 dígitos.'); return; }
@@ -116,7 +127,6 @@ export class TrabajadorComponent implements OnInit {
   }
 
   eliminar(id: number) { if (confirm('¿Estás seguro?')) { this.api.eliminar(id).subscribe({ next: () => { alert('Eliminado.'); this.cargarDatos(); }, error: (err) => { console.error(err); alert('Error.'); } }); } }
-  imprimirFotocheck(): void { window.print(); }
 
   // ==========================================
   // 📊 EXPORTAR A EXCEL (Todo el contenido)
@@ -130,12 +140,10 @@ export class TrabajadorComponent implements OnInit {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Trabajadores');
     XLSX.writeFile(workbook, 'Reporte_Personal_AmazonNuts.xlsx');
   }
-
+  //  aqui 
   // ==========================================
-  // 📄 EXPORTAR A PDF (🔥 MODELO EXACTO)
+  // 📄 EXPORTAR A PDF (REPORTES) (Se mantiene)
   // ==========================================
-
-  // Función auxiliar para cargar imagen y convertir a Base64
   private loadImage(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -210,20 +218,20 @@ export class TrabajadorComponent implements OnInit {
         },
 
         // Configuración de anchos ajustada para 8 columnas
-        // Configuración de anchos ajustada
         columnStyles: {
           0: { halign: 'center', cellWidth: 10 }, // N°
           1: { halign: 'center', cellWidth: 20 }, // DNI
           2: { cellWidth: 60 },                   // Apellidos y Nombres
           3: { cellWidth: 40 },                   // Área / Cargo
-          4: { halign: 'center', cellWidth: 24 }, // FECHA INICIO
+          4: { halign: 'center', cellWidth: 25 }, // 🔥 FECHA INICIO
           5: { halign: 'center', cellWidth: 23 }, // Celular
           // La columna 6 (Dirección) toma el espacio restante automáticamente
-          7: { halign: 'center', cellWidth: 28 }  // 🔥 EXPERIENCIA (Aumentado de 23 a 28 para evitar salto de línea)
+          7: { halign: 'center', cellWidth: 28 }  // Experiencia
         },
 
         alternateRowStyles: { fillColor: [245, 250, 245] },
       });
+
       // 6. 🟢 DESCARGAR EL ARCHIVO
       doc.save(`LISTA_PERSONAL_AMAZON_NUTS_CAMPAÑA_2026_${fechaActual}.pdf`);
 
@@ -232,6 +240,7 @@ export class TrabajadorComponent implements OnInit {
       alert('Hubo un error al generar el PDF. Asegúrate de haber guardado el logo en "assets/img/logo_reporte.png".');
     }
   }
+
   // ==========================================
   // 🔥🔥🔥 NUEVA FUNCIÓN: GENERAR PDF PVC ESTÁNDAR
   // ==========================================
@@ -274,6 +283,5 @@ export class TrabajadorComponent implements OnInit {
       alert('¡PDF del Fotocheck generado con éxito! Imprímelo en tamaño real (sin ajustar) para que coincida con tus micas.');
     });
   }
-
 
 }

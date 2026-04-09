@@ -10,7 +10,7 @@ import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout';
 
 // 📦 Componentes del Panel de Administración (Hijos)
 import { Admin } from './pages/admin/admin'; // Este es tu Dashboard actual
-import { TrabajadorComponent } from './components/trabajador/trabajador';
+import { Trabajador } from './components/trabajador/trabajador';
 import { Asistencia } from './components/asistencia/asistencia';
 //dashboard
 import { Dashboard } from './pages/dashboard/dashboard';
@@ -44,7 +44,7 @@ export const routes: Routes = [
             { path: 'cotizaciones', component: Admin },
 
             // 3. LOS DEMÁS MÓDULOS
-            { path: 'trabajador', component: TrabajadorComponent },
+            { path: 'trabajador', component: Trabajador },
             { path: 'asistencia', component: Asistencia },
             // 🚀 Próximos módulos (Descomentar cuando se creen):
             // { path: 'cotizaciones', component: CotizacionesComponent },
