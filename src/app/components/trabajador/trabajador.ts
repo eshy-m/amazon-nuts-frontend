@@ -7,6 +7,8 @@ import { RouterModule } from '@angular/router';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+// 🔥 NUEVA IMPORTACIÓN: Para capturar HTML como imagen para el Fotocheck
+import html2canvas from 'html2canvas';
 
 // Variables de entorno y servicio...
 import { environment } from '../../../environments/environment';
@@ -208,15 +210,16 @@ export class TrabajadorComponent implements OnInit {
         },
 
         // Configuración de anchos ajustada para 8 columnas
+        // Configuración de anchos ajustada
         columnStyles: {
           0: { halign: 'center', cellWidth: 10 }, // N°
           1: { halign: 'center', cellWidth: 20 }, // DNI
           2: { cellWidth: 60 },                   // Apellidos y Nombres
           3: { cellWidth: 40 },                   // Área / Cargo
-          4: { halign: 'center', cellWidth: 25 }, // 🔥 FECHA INICIO
+          4: { halign: 'center', cellWidth: 24 }, // FECHA INICIO
           5: { halign: 'center', cellWidth: 23 }, // Celular
           // La columna 6 (Dirección) toma el espacio restante automáticamente
-          7: { halign: 'center', cellWidth: 23 }  //  es Experiencia
+          7: { halign: 'center', cellWidth: 28 }  // 🔥 EXPERIENCIA (Aumentado de 23 a 28 para evitar salto de línea)
         },
 
         alternateRowStyles: { fillColor: [245, 250, 245] },
@@ -229,4 +232,48 @@ export class TrabajadorComponent implements OnInit {
       alert('Hubo un error al generar el PDF. Asegúrate de haber guardado el logo en "assets/img/logo_reporte.png".');
     }
   }
+  // ==========================================
+  // 🔥🔥🔥 NUEVA FUNCIÓN: GENERAR PDF PVC ESTÁNDAR
+  // ==========================================
+  generarPDF_Fotocheck(t: any) {
+    const DATA = document.getElementById('fotocheck_preview');
+
+    if (!DATA) {
+      alert('Error: No se pudo encontrar el área de previsualización del fotocheck.');
+      return;
+    }
+
+    // Mostramos un mensaje de espera, ya que html2canvas puede tardar un poco
+    alert('Generando PDF del fotocheck en tamaño estándar PVC. Por favor espere...');
+
+    // Capturamos el HTML (#fotocheck_preview) como una imagen de alta calidad
+    html2canvas(DATA, {
+      scale: 3, // Aumentamos la escala para mayor resolución en la impresión
+      useCORS: true, // Importante para cargar la foto de Hostinger y el QR SVG
+      logging: false,
+      backgroundColor: '#ffffff'
+    }).then(canvas => {
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+      // 🔥 CREAMOS PDF CON TAMAÑO ESTÁNDAR PVC VERTICAL ($86\text{mm x }54\text{mm}$)
+      // El formato es [ancho, alto]
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [54, 86] // Tamaño exacto de tarjeta PVC Vertical
+      });
+
+      // Añadimos la imagen capturada al PDF ocupando todo el tamaño de la página (sin márgenes)
+      doc.addImage(imgData, 'JPEG', 0, 0, 54, 86);
+
+      // Guardamos el PDF con el nombre del trabajador
+      const nombreArchivo = `Fotocheck_${t.dni}_${t.apellidos.replace(/ /g, '_')}.pdf`;
+      doc.save(nombreArchivo);
+
+      alert('¡PDF del Fotocheck generado con éxito! Imprímelo en tamaño real (sin ajustar) para que coincida con tus micas.');
+    });
+  }
+
+
 }

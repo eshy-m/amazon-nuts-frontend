@@ -1,22 +1,22 @@
 <div class="w-full bg-gray-50 min-h-screen p-6 print:p-0 print:bg-white">
 
-    <div class="flex items-center justify-between mb-8 no-print">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 no-print">
         <div>
             <h1 class="text-3xl font-black text-gray-800 tracking-tight">Control de Personal</h1>
             <p class="text-sm text-gray-500 mt-1">Gestión de trabajadores y Fotochecks QR</p>
         </div>
 
-        <div class="flex gap-3">
+        <div class="flex flex-wrap md:flex-nowrap gap-2 w-full md:w-auto">
             <button (click)="exportarExcel()"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                class="flex-1 md:flex-none justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
                 📊 Excel
             </button>
             <button (click)="exportarPDF()"
-                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                class="flex-1 md:flex-none justify-center bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
                 📄 PDF
             </button>
             <button (click)="abrirModalNuevo()"
-                class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+                class="w-full md:w-auto justify-center bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2 text-sm">
                 + Nuevo Trabajador
             </button>
         </div>
@@ -305,41 +305,78 @@
     </div>
 
     <div *ngIf="mostrarModalFotocheck && trabajadorSeleccionado"
-        class="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4">
-        <div class="w-full max-w-sm flex justify-between items-center mb-4 no-print">
-            <button (click)="imprimirFotocheck()"
-                class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow hover:bg-gray-100 flex items-center gap-2">🖨️
-                Imprimir</button>
+        class="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center p-4 backdrop-blur-sm no-print">
+
+        <div class="w-full max-w-sm flex justify-between items-center mb-6">
+            <button (click)="generarPDF_Fotocheck(trabajadorSeleccionado)"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition-colors flex items-center gap-2">
+                🖨️ Generar PDF PVC
+            </button>
             <button (click)="cerrarModalFotocheck()"
-                class="bg-red-500 text-white w-10 h-10 rounded-full font-bold text-xl shadow hover:bg-red-600">&times;</button>
+                class="bg-red-500 text-white w-10 h-10 rounded-full font-bold text-xl shadow hover:bg-red-600 flex items-center justify-center">&times;</button>
         </div>
-        <div
-            class="print-area bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] h-[500px] border border-gray-200">
-            <div class="bg-white border-b-4 border-green-700 p-4 text-center">
-                <img src="https://eshypro.com/img/log.png" alt="Amazon Nuts Logo" class="h-10 mx-auto object-contain">
+
+        <div id="fotocheck_preview" class="overflow-hidden flex flex-col shadow-2xl"
+            style="width: 320px; height: 510px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; position: relative; box-sizing: border-box; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px;">
+
+            <div class="w-full text-center shrink-0"
+                style="background-color: #ffffff; padding: 12px 16px 8px 16px; border-bottom: 2px solid #f3f4f6;">
+                <img src="assets/img/logo_reporte.png" alt="Amazon Nuts Logo" class="h-12 mx-auto object-contain">
             </div>
-            <div class="py-6 px-4 flex-grow flex flex-col items-center">
-                <div
-                    class="w-24 h-24 rounded-full border-4 border-gray-200 shadow-sm bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
+
+            <div class="w-full flex justify-center mt-6 mb-2 shrink-0">
+                <div class="rounded-full overflow-hidden flex items-center justify-center shadow-md"
+                    style="width: 140px; height: 140px; background-color: #f3f4f6; border: 4px solid #15803d;">
                     <img *ngIf="trabajadorSeleccionado.foto" [src]="baseStorageUrl + trabajadorSeleccionado.foto"
                         class="w-full h-full object-cover">
-                    <span *ngIf="!trabajadorSeleccionado.foto" class="text-4xl">👤</span>
+                    <span *ngIf="!trabajadorSeleccionado.foto" style="font-size: 60px;">👤</span>
                 </div>
-                <h6 class="font-black text-gray-800 text-center uppercase leading-tight text-lg">{{
-                    trabajadorSeleccionado.nombres }}</h6>
-                <p class="text-sm text-gray-500 text-center mt-1 uppercase font-medium mb-4">{{
-                    trabajadorSeleccionado.apellidos }}</p>
+            </div>
+
+            <div class="w-full text-center flex-grow flex flex-col justify-start pt-2 px-3"
+                style="background-color: #ffffff;">
+                <p
+                    style="font-size: 12px; color: #6b7280; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">
+                    {{ trabajadorSeleccionado.area }}</p>
+                <h6
+                    style="font-weight: 900; color: #111827; text-transform: uppercase; font-size: 22px; line-height: 1.1; margin-bottom: 2px;">
+                    {{ trabajadorSeleccionado.apellidos }}</h6>
+                <p
+                    style="font-size: 16px; color: #374151; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">
+                    {{ trabajadorSeleccionado.nombres }}</p>
                 <div
-                    class="w-36 h-36 bg-white p-2 border border-gray-200 rounded-xl flex items-center justify-center shadow-inner">
-                    <img [src]="baseStorageUrl + 'qrcodes/' + trabajadorSeleccionado.dni + '.svg'" alt="QR"
-                        class="w-full h-full object-contain">
+                    style="font-size: 11px; color: #4b5563; font-family: monospace; background-color: #f3f4f6; padding: 3px 12px; border-radius: 9999px; display: inline-block; margin: 0 auto;">
+                    DNI: {{ trabajadorSeleccionado.dni }}</div>
+            </div>
+
+            <div class="w-full mt-auto shrink-0 flex flex-col"
+                style="background-color: #052e16; color: #ffffff; border-top: 4px solid #15803d; padding: 12px 16px 10px 16px;">
+                <div class="flex items-center gap-4 mb-3 justify-center">
+
+                    <div class="rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                        style="width: 85px; height: 85px; background-color: #ffffff; padding: 4px;">
+                        <img [src]="baseStorageUrl + 'qrcodes/' + trabajadorSeleccionado.dni + '.svg'" alt="QR"
+                            class="w-full h-full object-contain">
+                    </div>
+
+                    <div class="text-left flex flex-col justify-center">
+                        <span
+                            style="font-size: 22px; font-family: monospace; font-weight: bold; letter-spacing: 0.05em; display: block; line-height: 1.2;">{{
+                            trabajadorSeleccionado.dni }}</span>
+                        <span
+                            style="font-size: 9px; color: #86efac; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 4px;">Fotocheck
+                            Oficial<br>Válido 2026</span>
+                    </div>
+                </div>
+
+                <div class="text-center" style="border-top: 1px solid #166534; padding-top: 8px;">
+                    <p
+                        style="font-size: 10px; color: #ffffff; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;">
+                        Puerto Maldonado - Perú</p>
+                    <p style="font-size: 9px; color: #86efac; font-weight: 500;">Amazon Nuts S.A.C. &copy; 2026</p>
                 </div>
             </div>
-            <div class="bg-green-950 text-white text-center py-3 mt-auto">
-                <span class="block text-sm font-bold uppercase tracking-widest">{{ trabajadorSeleccionado.area }}</span>
-                <span class="block text-[10px] text-green-300 font-mono mt-1">DNI: {{ trabajadorSeleccionado.dni
-                    }}</span>
-            </div>
+
         </div>
     </div>
 </div>
