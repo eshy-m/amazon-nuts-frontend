@@ -216,7 +216,7 @@ export class TrabajadorComponent implements OnInit {
           4: { halign: 'center', cellWidth: 25 }, // 🔥 FECHA INICIO
           5: { halign: 'center', cellWidth: 23 }, // Celular
           // La columna 6 (Dirección) toma el espacio restante automáticamente
-          7: { halign: 'center', cellWidth: 23 }  // Experiencia
+          7: { halign: 'center', cellWidth: 23 }  //  es Experiencia
         },
 
         alternateRowStyles: { fillColor: [245, 250, 245] },
@@ -226,7 +226,7 @@ export class TrabajadorComponent implements OnInit {
 
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert('Hubo un error al generar el PDF. Asegúrate de haber guardado el logo en "assets/img/logo_reporte.jpg".');
+      alert('Hubo un error al generar el PDF. Asegúrate de haber guardado el logo en "assets/img/logo_reporte.png".');
     }
   }
 }
