@@ -25,14 +25,6 @@ export class Trabajador implements OnInit {
 
   public baseStorageUrl: string = environment.storageUrl;
 
-  public mostrarModalImpresionMasiva = false;
-  abrirImpresionMasiva() {
-    this.mostrarModalImpresionMasiva = true;
-  }
-  imprimir() {
-    window.print();
-  }
-
   // Variables para la Vista
   public lista: any[] = [];
   public estadisticas: any[] = [];
@@ -125,6 +117,22 @@ export class Trabajador implements OnInit {
     this.paginaActual = 1; // Al buscar, siempre reiniciamos a la página 1
   }
 
+  get itemInicial(): number {
+    return this.trabajadoresFiltrados.length === 0 ? 0 : (this.paginaActual - 1) * this.itemsPorPagina + 1;
+  }
+
+  get itemFinal(): number {
+    return Math.min(this.paginaActual * this.itemsPorPagina, this.trabajadoresFiltrados.length);
+  }
+
+  esTrabajadorActivo(t: any): boolean {
+    return t.activo == 1 || t.activo === true || t.activo === '1';
+  }
+
+  esFormularioActivo(): boolean {
+    return this.form.activo == 1 || this.form.activo === true || this.form.activo === '1';
+  }
+
   // ==========================================
   // LÓGICA DEL FORMULARIO
   // ==========================================
@@ -144,36 +152,62 @@ export class Trabajador implements OnInit {
       fecha_inicio: '',
       experiencia_bool: false,
       activo: true,
-      fecha_fin: ''
+      fecha_fin: '',
+      fecha_vencimiento_carnet: '',
+      contacto_emergencia: '',
+      numero_emergencia: '',
+      tipo_pago: '',
+      cuenta_pago: ''
     };
   }
 
   abrirModalNuevo() {
-    this.esEdicion = false; this.form = this.obtenerFormularioVacio(); this.fotoSeleccionada = null; this.fotoPreview = null; this.mostrarModalForm = true;
+    this.esEdicion = false;
+    this.form = this.obtenerFormularioVacio();
+    this.fotoSeleccionada = null;
+    this.fotoPreview = null;
+    this.mostrarModalForm = true;
   }
 
-  ////todo okeeey
-
   editar(t: any) {
-    this.esEdicion = true; this.form = { ...t }; this.form.experiencia_bool = (t.experiencia === 'SÍ');
-    if (t.foto) { this.fotoPreview = this.baseStorageUrl + t.foto; } else { this.fotoPreview = null; }
-    this.fotoSeleccionada = null; this.mostrarModalForm = true;
+    this.esEdicion = true;
+    this.form = { ...t };
+    this.form.experiencia_bool = (t.experiencia === 'SÍ');
+    this.fotoPreview = t.foto ? this.baseStorageUrl + t.foto : null;
+    this.fotoSeleccionada = null;
+    this.mostrarModalForm = true;
   }
 
   cerrarModalForm() {
-    this.mostrarModalForm = false; this.form = this.obtenerFormularioVacio(); this.fotoSeleccionada = null; this.fotoPreview = null;
+    this.mostrarModalForm = false;
+    this.form = this.obtenerFormularioVacio();
+    this.fotoSeleccionada = null;
+    this.fotoPreview = null;
   }
-  //good
 
-  abrirModalFotocheck(t: any) { this.trabajadorSeleccionado = t; this.mostrarModalFotocheck = true; }
-  cerrarModalFotocheck() { this.mostrarModalFotocheck = false; this.trabajadorSeleccionado = null; }
+  abrirModalFotocheck(t: any) {
+    this.trabajadorSeleccionado = t;
+    this.mostrarModalFotocheck = true;
+  }
+
+  cerrarModalFotocheck() {
+    this.mostrarModalFotocheck = false;
+    this.trabajadorSeleccionado = null;
+  }
 
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { alert('La imagen es muy pesada. Máximo 2MB.'); return; }
+      if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es muy pesada. Máximo 2MB.');
+        return;
+      }
       this.fotoSeleccionada = file;
-      const reader = new FileReader(); reader.onload = () => { this.fotoPreview = reader.result; }; reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.fotoPreview = reader.result;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -181,8 +215,14 @@ export class Trabajador implements OnInit {
   // 💾 GUARDAR / ELIMINAR (Se mantiene)
   // ==========================================
   guardar() {
-    if (!this.form.dni || String(this.form.dni).length !== 8) { alert('El DNI debe tener exactamente 8 dígitos.'); return; }
-    if (!this.form.area || !this.form.genero || !this.form.nombres || !this.form.apellidos) { alert('Por favor, completa los campos obligatorios (*).'); return; }
+    if (!this.form.dni || String(this.form.dni).length !== 8) {
+      alert('El DNI debe tener exactamente 8 dígitos.');
+      return;
+    }
+    if (!this.form.area || !this.form.genero || !this.form.nombres || !this.form.apellidos) {
+      alert('Por favor, completa los campos obligatorios (*).');
+      return;
+    }
     const formData = new FormData();
     formData.append('dni', this.form.dni);
     formData.append('nombres', this.form.nombres);
@@ -191,6 +231,18 @@ export class Trabajador implements OnInit {
     formData.append('genero', this.form.genero);
     formData.append('condicion_laboral', this.form.condicion_laboral);
     formData.append('activo', this.form.activo ? '1' : '0');
+    // 🔥 ENVIAR LOS NUEVOS DATOS (Si es que el usuario los llenó)
+
+    if (this.form.fecha_vencimiento_carnet) formData.append('fecha_vencimiento_carnet', this.form.fecha_vencimiento_carnet);
+    if (this.form.contacto_emergencia) formData.append('contacto_emergencia', this.form.contacto_emergencia);
+    if (this.form.numero_emergencia) formData.append('numero_emergencia', this.form.numero_emergencia);
+    if (this.form.tipo_pago) formData.append('tipo_pago', this.form.tipo_pago);
+    if (this.form.fecha_vencimiento_carnet) formData.append('fecha_vencimiento_carnet', this.form.fecha_vencimiento_carnet);
+    if (this.form.contacto_emergencia) formData.append('contacto_emergencia', this.form.contacto_emergencia);
+    if (this.form.numero_emergencia) formData.append('numero_emergencia', this.form.numero_emergencia);
+    if (this.form.tipo_pago) formData.append('tipo_pago', this.form.tipo_pago);
+    if (this.form.cuenta_pago) formData.append('cuenta_pago', this.form.cuenta_pago);
+    if (this.form.cuenta_pago) formData.append('cuenta_pago', this.form.cuenta_pago);
     if (this.form.fecha_fin) formData.append('fecha_fin', this.form.fecha_fin);
     if (this.form.fecha_nacimiento) formData.append('fecha_nacimiento', this.form.fecha_nacimiento);
     if (this.form.fecha_inicio) formData.append('fecha_inicio', this.form.fecha_inicio);
@@ -198,13 +250,52 @@ export class Trabajador implements OnInit {
     if (this.form.direccion) formData.append('direccion', this.form.direccion);
     if (this.form.observaciones) formData.append('observaciones', this.form.observaciones);
     formData.append('experiencia', this.form.experiencia_bool ? 'SÍ' : 'NO');
-    if (this.fotoSeleccionada) { formData.append('foto', this.fotoSeleccionada); }
+    if (this.fotoSeleccionada) {
+      formData.append('foto', this.fotoSeleccionada);
+    }
+
+
     if (this.esEdicion) {
-      this.api.actualizarConFoto(this.form.id, formData).subscribe({ next: () => { alert('¡Trabajador actualizado con éxito!'); this.cerrarModalForm(); this.cargarDatos(); }, error: (err) => { console.error(err); alert('Error al actualizar.'); } });
-    } else { this.api.registrar(formData as any).subscribe({ next: () => { alert('¡Trabajador registrado con éxito!'); this.cerrarModalForm(); this.cargarDatos(); }, error: (err) => { console.error(err); alert('Error al registrar.'); } }); }
+      this.api.actualizarConFoto(this.form.id, formData).subscribe({
+        next: () => {
+          alert('¡Trabajador actualizado con éxito!');
+          this.cerrarModalForm();
+          this.cargarDatos();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error al actualizar.');
+        }
+      });
+    } else {
+      this.api.registrar(formData as any).subscribe({
+        next: () => {
+          alert('¡Trabajador registrado con éxito!');
+          this.cerrarModalForm();
+          this.cargarDatos();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error al registrar.');
+        }
+      });
+    }
   }
 
-  eliminar(id: number) { if (confirm('¿Estás seguro?')) { this.api.eliminar(id).subscribe({ next: () => { alert('Eliminado.'); this.cargarDatos(); }, error: (err) => { console.error(err); alert('Error.'); } }); } }
+  eliminar(id: number) {
+    if (confirm('¿Estás seguro?')) {
+      this.api.eliminar(id).subscribe({
+        next: () => {
+          alert('Eliminado.');
+          this.cargarDatos();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error.');
+        }
+      });
+    }
+  }
 
   // ==========================================
   // 📊 EXPORTAR A EXCEL (Todo el contenido)
@@ -218,7 +309,7 @@ export class Trabajador implements OnInit {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Trabajadores');
     XLSX.writeFile(workbook, 'Reporte_Personal_AmazonNuts.xlsx');
   }
-  //  aqui 
+
   // ==========================================
   // 📄 EXPORTAR A PDF (REPORTES)
   // ==========================================
