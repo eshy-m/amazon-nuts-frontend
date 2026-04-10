@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TrabajadorComponent } from './trabajador';
+import { Trabajador } from './trabajador';
 
 describe('Trabajador', () => {
-  let component: TrabajadorComponent;
-  let fixture: ComponentFixture<TrabajadorComponent>;
+  let component: Trabajador;
+  let fixture: ComponentFixture<Trabajador>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

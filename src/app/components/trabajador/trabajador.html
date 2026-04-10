@@ -45,27 +45,55 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden no-print">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4 no-print">
+
+        <div class="flex bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden w-full sm:w-96">
+            <input type="text" [(ngModel)]="textoBusqueda" (keyup.enter)="buscar()" (input)="buscar()"
+                placeholder="Buscar por DNI, Nombres o Apellidos..."
+                class="w-full bg-transparent border-none px-4 py-2 text-sm text-gray-700 outline-none focus:ring-0">
+            <button (click)="buscar()"
+                class="bg-green-50 hover:bg-green-100 px-5 text-green-700 font-bold border-l border-gray-300 transition-colors">
+                Buscar
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+            <label class="text-sm font-bold text-gray-500">Mostrar:</label>
+            <select [(ngModel)]="itemsPorPagina" (change)="cambiarItemsPorPagina()"
+                class="border-none bg-transparent font-bold text-gray-700 text-sm outline-none cursor-pointer focus:ring-0">
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="30">30</option>
+                <option [value]="50">50</option>
+                <option [value]="lista.length">Todos</option>
+            </select>
+            <span class="text-sm font-medium text-gray-500">registros</span>
+        </div>
+    </div>
+    <!--otro-->
+    <div class="bg-white rounded-t-xl shadow-sm border border-gray-100 overflow-hidden no-print">
         <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse min-w-[1200px]">
                 <thead>
                     <tr class="bg-green-950 text-white border-b border-green-800">
                         <th class="py-4 px-2 font-bold text-sm uppercase tracking-wider text-center">N°</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">DNI</th>
-                        <th class="py-4 px-16 font-bold text-sm uppercase tracking-wider text-center">Trabajador</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Trabajador</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Área</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Fecha Inicio</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Contacto</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Dirección</th>
+                        <th class="py-4 px-8 font-bold text-sm uppercase tracking-wider text-center">Estado</th>
                         <th class="py-4 px-2 font-bold text-sm uppercase tracking-wider text-center">Experiencia</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Observación</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <tr *ngFor="let t of lista; let i = index" class="hover:bg-gray-50 transition-colors">
-                        <td class="py-3 px-4 font-bold text-gray-700">{{ i + 1 }}</td>
-
+                    <tr *ngFor="let t of trabajadoresPaginados; let i = index"
+                        class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4 font-bold text-gray-700">{{ (paginaActual - 1) * itemsPorPagina + i + 1 }}
+                        </td>
                         <td class="py-3 px-4">
                             <div class="font-mono text-gray-700 font-bold">{{ t.dni }}</div>
                         </td>
@@ -83,7 +111,8 @@
                                     <p class="font-bold text-gray-800 leading-tight">{{ t.apellidos }}</p>
                                     <p class="text-xs text-gray-500">{{ t.nombres }}</p>
                                     <div class="text-[11px] text-gray-400 mt-0.5 font-medium"
-                                        *ngIf="t.fecha_nacimiento">🎂 Nac: {{ t.fecha_nacimiento }}</div>
+                                        *ngIf="t.fecha_nacimiento">🎂
+                                        Nac: {{ t.fecha_nacimiento }}</div>
                                 </div>
                             </div>
                         </td>
@@ -103,6 +132,21 @@
                         <td class="py-3 px-4">
                             <div class="text-[12px] text-gray-600 truncate max-w-[150px]" [title]="t.direccion">{{
                                 t.direccion || '---' }}</div>
+                        </td>
+                        <!--FECHA FIN-->
+                        <td class="py-3 px-4 text-center">
+                            <span *ngIf="t.activo == 1 || t.activo === true"
+                                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200 shadow-sm">
+                                🟢 ACTIVO
+                            </span>
+                            <div *ngIf="t.activo == 0 || t.activo === false" class="flex flex-col items-center">
+                                <span
+                                    class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200 shadow-sm mb-1">
+                                    🔴 CESE
+                                </span>
+                                <span class="text-[10px] text-gray-500 font-medium" *ngIf="t.fecha_fin">Salida: {{
+                                    t.fecha_fin }}</span>
+                            </div>
                         </td>
 
                         <td class="py-3 px-4 text-center">
@@ -127,14 +171,46 @@
                                 title="Eliminar">🗑️</button>
                         </td>
                     </tr>
-                    <tr *ngIf="lista.length === 0">
-                        <td colspan="10" class="py-8 text-center text-gray-400 font-medium">No hay trabajadores
-                            registrados.</td>
+                    <tr *ngIf="trabajadoresPaginados.length === 0">
+                        <td colspan="11" class="py-8 text-center text-gray-400 font-medium">No se encontraron
+                            trabajadores.</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
+
+    <div
+        class="bg-white px-4 py-4 border border-t-0 border-gray-100 flex flex-col sm:flex-row items-center justify-between no-print rounded-b-xl shadow-sm mb-6">
+        <div class="mb-4 sm:mb-0 text-sm text-gray-500">
+            Mostrando del <span class="font-bold text-gray-800">{{ trabajadoresFiltrados.length === 0 ? 0 :
+                (paginaActual - 1) * itemsPorPagina + 1 }}</span>
+            al <span class="font-bold text-gray-800">{{ (paginaActual * itemsPorPagina) > trabajadoresFiltrados.length ?
+                trabajadoresFiltrados.length : (paginaActual * itemsPorPagina) }}</span>
+            de un total de <span class="font-bold text-gray-800">{{ trabajadoresFiltrados.length }}</span> trabajadores
+        </div>
+
+        <div *ngIf="totalPaginas > 1">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1"
+                    class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    &laquo; Anterior
+                </button>
+                <button *ngFor="let p of paginas" (click)="cambiarPagina(p)" [class.bg-green-50]="p === paginaActual"
+                    [class.text-green-700]="p === paginaActual" [class.border-green-500]="p === paginaActual"
+                    [class.font-bold]="p === paginaActual" [class.z-10]="p === paginaActual"
+                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    {{ p }}
+                </button>
+                <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                    class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    Siguiente &raquo;
+                </button>
+            </nav>
+        </div>
+    </div>
+
 
     <div *ngIf="mostrarModalForm"
         class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
@@ -146,7 +222,7 @@
                 <button (click)="cerrarModalForm()"
                     class="text-gray-300 hover:text-white text-2xl leading-none">&times;</button>
             </div>
-
+            <!--FORMULARIO-->
             <div class="p-6 overflow-y-auto flex-1">
 
                 <div class="flex flex-col items-center justify-center mb-6">
@@ -274,6 +350,38 @@
                                 class="text-green-600 focus:ring-green-500">
                             <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
                         </label>
+                    </div>
+                </div>
+
+                <hr class="my-5 border-gray-200">
+                <p class="text-sm font-black text-gray-700 mb-4 uppercase tracking-wider text-green-800">Situación en la
+                    Empresa</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Estado del Trabajador <span
+                                class="text-red-500">*</span></label>
+                        <div class="flex gap-4">
+                            <label
+                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1 transition-colors hover:bg-green-50">
+                                <input type="radio" [(ngModel)]="form.activo" name="estado_activo" [value]="true"
+                                    class="text-green-600 focus:ring-green-500">
+                                <span class="font-bold text-gray-700 text-sm">🟢 Activo</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1 transition-colors hover:bg-red-50">
+                                <input type="radio" [(ngModel)]="form.activo" name="estado_activo" [value]="false"
+                                    class="text-red-600 focus:ring-red-500">
+                                <span class="font-bold text-gray-700 text-sm">🔴 Cese</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div *ngIf="form.activo === false || form.activo === '0' || form.activo === 0">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha de Salida / Cese <span
+                                class="text-red-500">*</span></label>
+                        <input type="date" [(ngModel)]="form.fecha_fin"
+                            class="w-full border border-red-300 bg-red-50 rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500 transition-all">
                     </div>
                 </div>
 

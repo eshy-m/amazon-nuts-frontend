@@ -44,6 +44,10 @@ export class Trabajador implements OnInit {
   public trabajadorSeleccionado: any = null;
   public esEdicion = false;
 
+  // 🔍 Variables para Buscador y Paginación
+  public textoBusqueda: string = '';
+  public paginaActual: number = 1;
+  public itemsPorPagina: number = 10;
   // Variables de Foto
   public fotoSeleccionada: File | null = null;
   public fotoPreview: string | ArrayBuffer | null = null;
@@ -72,12 +76,76 @@ export class Trabajador implements OnInit {
       this.cdr.detectChanges();
     });
   }
+  // ==========================================
+  // 🔍 LÓGICA DE BÚSQUEDA Y PAGINACIÓN
+  // ==========================================
+
+  // 1. Primero filtramos por lo que escriba el usuario
+  get trabajadoresFiltrados() {
+    if (!this.textoBusqueda) {
+      return this.lista;
+    }
+    const termino = this.textoBusqueda.toLowerCase();
+    return this.lista.filter(t =>
+      (t.dni && t.dni.toLowerCase().includes(termino)) ||
+      (t.nombres && t.nombres.toLowerCase().includes(termino)) ||
+      (t.apellidos && t.apellidos.toLowerCase().includes(termino))
+    );
+  }
+
+  // 2. Luego cortamos (paginamos) la lista filtrada
+  get trabajadoresPaginados() {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.trabajadoresFiltrados.slice(inicio, fin);
+  }
+
+  // 3. Calculamos cuántas páginas totales hay
+  get totalPaginas() {
+    return Math.ceil(this.trabajadoresFiltrados.length / this.itemsPorPagina);
+  }
+
+  // 4. Creamos un arreglo para los botones [1], [2], [3]
+  get paginas() {
+    return Array(this.totalPaginas).fill(0).map((x, i) => i + 1);
+  }
+
+  // 5. Funciones para los botones
+  cambiarPagina(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+    }
+  }
+
+  cambiarItemsPorPagina() {
+    this.paginaActual = 1; // Si cambias a "Ver 20", te regresamos a la página 1
+  }
+
+  buscar() {
+    this.paginaActual = 1; // Al buscar, siempre reiniciamos a la página 1
+  }
 
   // ==========================================
-  // LÓGICA DEL FORMULARIO (Se mantiene)
+  // LÓGICA DEL FORMULARIO
   // ==========================================
   obtenerFormularioVacio() {
-    return { id: null, dni: '', nombres: '', apellidos: '', area: '', genero: '', condicion_laboral: 'Estable', celular: '', direccion: '', observaciones: '', fecha_nacimiento: '', fecha_inicio: '', experiencia_bool: false };
+    return {
+      id: null,
+      dni: '',
+      nombres: '',
+      apellidos: '',
+      area: '',
+      genero: '',
+      condicion_laboral: 'Estable',
+      celular: '',
+      direccion: '',
+      observaciones: '',
+      fecha_nacimiento: '',
+      fecha_inicio: '',
+      experiencia_bool: false,
+      activo: true,
+      fecha_fin: ''
+    };
   }
 
   abrirModalNuevo() {
@@ -116,9 +184,19 @@ export class Trabajador implements OnInit {
     if (!this.form.dni || String(this.form.dni).length !== 8) { alert('El DNI debe tener exactamente 8 dígitos.'); return; }
     if (!this.form.area || !this.form.genero || !this.form.nombres || !this.form.apellidos) { alert('Por favor, completa los campos obligatorios (*).'); return; }
     const formData = new FormData();
-    formData.append('dni', this.form.dni); formData.append('nombres', this.form.nombres); formData.append('apellidos', this.form.apellidos); formData.append('area', this.form.area); formData.append('genero', this.form.genero); formData.append('condicion_laboral', this.form.condicion_laboral);
-    if (this.form.fecha_nacimiento) formData.append('fecha_nacimiento', this.form.fecha_nacimiento); if (this.form.fecha_inicio) formData.append('fecha_inicio', this.form.fecha_inicio);
-    if (this.form.celular) formData.append('celular', this.form.celular); if (this.form.direccion) formData.append('direccion', this.form.direccion); if (this.form.observaciones) formData.append('observaciones', this.form.observaciones);
+    formData.append('dni', this.form.dni);
+    formData.append('nombres', this.form.nombres);
+    formData.append('apellidos', this.form.apellidos);
+    formData.append('area', this.form.area);
+    formData.append('genero', this.form.genero);
+    formData.append('condicion_laboral', this.form.condicion_laboral);
+    formData.append('activo', this.form.activo ? '1' : '0');
+    if (this.form.fecha_fin) formData.append('fecha_fin', this.form.fecha_fin);
+    if (this.form.fecha_nacimiento) formData.append('fecha_nacimiento', this.form.fecha_nacimiento);
+    if (this.form.fecha_inicio) formData.append('fecha_inicio', this.form.fecha_inicio);
+    if (this.form.celular) formData.append('celular', this.form.celular);
+    if (this.form.direccion) formData.append('direccion', this.form.direccion);
+    if (this.form.observaciones) formData.append('observaciones', this.form.observaciones);
     formData.append('experiencia', this.form.experiencia_bool ? 'SÍ' : 'NO');
     if (this.fotoSeleccionada) { formData.append('foto', this.fotoSeleccionada); }
     if (this.esEdicion) {
@@ -142,7 +220,7 @@ export class Trabajador implements OnInit {
   }
   //  aqui 
   // ==========================================
-  // 📄 EXPORTAR A PDF (REPORTES) (Se mantiene)
+  // 📄 EXPORTAR A PDF (REPORTES)
   // ==========================================
   private loadImage(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -189,7 +267,17 @@ export class Trabajador implements OnInit {
       doc.text(`FECHA: ${fechaActual}`, pageWidth - 14, 20, { align: 'right' });
 
       // 4. 🟢 MAPEAR DATOS A LA TABLA (Añadiendo Fecha de Inicio)
-      const headers = [['N°', 'DNI', 'APELLIDOS Y NOMBRES', 'ÁREA / CARGO', 'FECHA INICIO', 'N° CELULAR', 'DIRECCIÓN', 'EXPERIENCIA']];
+      const headers = [
+        ['N°',
+          'DNI',
+          'APELLIDOS Y NOMBRES',
+          'ÁREA / CARGO',
+          'FECHA INICIO',
+          'CONTACTO',
+          'DIRECCIÓN',
+          'ESTADO',
+          'EXPERIENCIA']
+      ];
       const dataPDF = this.lista.map((t, index) => [
         index + 1,
         t.dni,
@@ -198,6 +286,7 @@ export class Trabajador implements OnInit {
         t.fecha_inicio ? t.fecha_inicio : '---', // 🔥 NUEVA COLUMNA AQUÍ
         t.celular || '---',
         t.direccion || '---',
+        t.activo ? 'ACTIVO' : 'INACTIVO' + '\n' + t.fecha_fin,
         t.experiencia || 'NO'
       ]);
 
