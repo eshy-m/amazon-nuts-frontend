@@ -22,6 +22,7 @@ export class Asistencia implements OnInit {
   // ==========================================
   mostrarModalScanner = false;
   scannerHabilitado = false;
+  mostrarModalManual = false;
   procesando = false; // Bloquea múltiples escaneos accidentales
   codigoManual: string = ''; // Modelo para el input de DNI manual
 

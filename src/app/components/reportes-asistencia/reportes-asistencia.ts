@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // 🔥 1. Importamos ChangeDetectorRef
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsistenciaService } from '../../services/asistencia';
@@ -14,7 +14,8 @@ export class ReportesAsistenciaComponent implements OnInit {
   // ==========================================
   // 📊 VARIABLES DE ESTADO Y DATOS
   // ==========================================
-  historial: any[] = [];
+  historialCompleto: any[] = []; // Guarda TODOS los datos traídos por fecha
+  historialFiltrado: any[] = []; // Guarda los datos que se muestran en la tabla según la búsqueda
   cargando = false;
 
   // Filtros de búsqueda
@@ -24,12 +25,12 @@ export class ReportesAsistenciaComponent implements OnInit {
 
   constructor(
     private api: AsistenciaService,
-    private cdr: ChangeDetectorRef // 🔥 2. Lo inyectamos en el constructor
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.establecerFechasPorDefecto();
-    this.buscarReportes();
+    this.cargarReportesPorFechas(); // Carga inicial
   }
 
   // ==========================================
@@ -40,36 +41,54 @@ export class ReportesAsistenciaComponent implements OnInit {
     const haceSieteDias = new Date();
     haceSieteDias.setDate(hoy.getDate() - 7);
 
-    // Formateamos a YYYY-MM-DD para los inputs de tipo date
     this.fechaFin = hoy.toISOString().split('T')[0];
     this.fechaInicio = haceSieteDias.toISOString().split('T')[0];
   }
 
   // ==========================================
-  // 🔍 BÚSQUEDA Y PETICIÓN AL BACKEND
+  // 🌐 PETICIÓN AL BACKEND (Solo por Fechas)
   // ==========================================
-  buscarReportes() {
+  cargarReportesPorFechas() {
     this.cargando = true;
-    this.cdr.detectChanges(); // 🔥 Forzamos la vista para mostrar "Cargando..."
+    this.cdr.detectChanges();
 
-    this.api.obtenerReportes(this.fechaInicio, this.fechaFin, this.busqueda).subscribe({
+    // OJO: Ya no le enviamos la "búsqueda" de texto al backend, traemos todo el bloque de fechas
+    this.api.obtenerReportes(this.fechaInicio, this.fechaFin, '').subscribe({
       next: (res) => {
-        this.historial = res.data;
+        this.historialCompleto = res.data || [];
+        this.filtrarEnTiempoReal(); // Aplicamos el filtro al instante por si ya había texto
         this.cargando = false;
-        this.cdr.detectChanges(); // 🔥 PELIZCO A ANGULAR: "Dibuja la tabla ya mismo"
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar reportes', err);
+        this.historialCompleto = [];
+        this.historialFiltrado = [];
         this.cargando = false;
-        this.cdr.detectChanges(); // 🔥 Refrescamos por si hay error y se debe quitar el "Cargando..."
+        this.cdr.detectChanges();
       }
     });
   }
 
   // ==========================================
-  // 🧮 CÁLCULOS EN VIVO
+  // ⚡ FILTRO INSTANTÁNEO EN EL CLIENTE (Frontend)
   // ==========================================
-  get totalHorasFiltradas(): number {
-    return this.historial.reduce((total, asis) => total + (Number(asis.horas_trabajadas) || 0), 0);
+  filtrarEnTiempoReal() {
+    // Si la barra está vacía, mostramos todo el historial de esas fechas
+    if (!this.busqueda || this.busqueda.trim() === '') {
+      this.historialFiltrado = [...this.historialCompleto];
+      return;
+    }
+
+    const termino = this.busqueda.toLowerCase().trim();
+
+    // Filtramos al instante buscando coincidencias en DNI, nombres, apellidos o áreas
+    this.historialFiltrado = this.historialCompleto.filter(h =>
+      (h.trabajador?.dni && h.trabajador.dni.includes(termino)) ||
+      (h.trabajador?.nombres && h.trabajador.nombres.toLowerCase().includes(termino)) ||
+      (h.trabajador?.apellidos && h.trabajador.apellidos.toLowerCase().includes(termino)) ||
+      (h.turno?.area && h.turno.area.toLowerCase().includes(termino)) ||
+      (h.trabajador?.area && h.trabajador.area.toLowerCase().includes(termino))
+    );
   }
 }
