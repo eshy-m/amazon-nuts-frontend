@@ -25,4 +25,15 @@ export class TurnoService {
   cerrarTurno(id: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}/cerrar`, {});
   }
+  updateTurno(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data);
+  }
+
+  deleteTurno(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  ejecutarAutoCierre(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/auto-cerrar`);
+  }
 }

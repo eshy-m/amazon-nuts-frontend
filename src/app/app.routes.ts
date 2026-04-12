@@ -19,7 +19,7 @@ import { Admin } from './pages/admin/admin'; // Cotizaciones/Mensajes
 import { Trabajador } from './components/trabajador/trabajador';
 import { Asistencia } from './components/asistencia/asistencia';
 import { ReportesAsistenciaComponent } from './components/reportes-asistencia/reportes-asistencia';
-import { TurnosComponent } from './pages/turnos/turnos';
+import { Turnos } from './pages/turnos/turnos';
 
 // ==========================================
 // 🚀 CONFIGURACIÓN DE RUTAS
@@ -51,7 +51,7 @@ export const routes: Routes = [
             // Módulos del sistema
             { path: 'dashboard', component: Dashboard },
             { path: 'cotizaciones', component: Admin }, // Bandeja de mensajes de la web
-            { path: 'turnos', component: TurnosComponent }, // Programación de turnos
+            { path: 'turnos', component: Turnos }, // Programación de turnos
             { path: 'escaner-qr', component: EscanerQrComponent },
             { path: 'trabajador', component: Trabajador }, // Gestión de personal
             { path: 'asistencia', component: Asistencia }, // Monitoreo de asistencia del día
