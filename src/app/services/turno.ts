@@ -35,4 +35,17 @@ export class TurnoService {
     // Apunta al endpoint exacto que creamos en Laravel
     return this.http.post(`${this.apiUrl}/auto-cierre`, {});
   }
+
+  // Añade este método
+  descargarGeneralPDF(inicio: string, fin: string): Observable<any> {
+    // Nota: Usamos environment.apiUrl directamente aquí para evitar el slash extra
+    const url = `${environment.apiUrl}/turnos/reporte/general/pdf?inicio=${inicio}&fin=${fin}`;
+    return this.http.get(url, { responseType: 'blob' }); // 'blob' es para recibir archivos binarios
+  }
+
+  // Añade este método
+  descargarDetalladoExcel(inicio: string, fin: string): Observable<any> {
+    const url = `${environment.apiUrl}/turnos/reporte/detallado/excel?inicio=${inicio}&fin=${fin}`;
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }

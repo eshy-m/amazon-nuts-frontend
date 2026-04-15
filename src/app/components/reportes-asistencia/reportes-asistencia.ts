@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsistenciaService } from '../../services/asistencia';
+import { environment } from '../../../environments/environment'; // 👈 Importación vital para las URLs
 
 @Component({
   selector: 'app-reportes-asistencia',
@@ -14,8 +15,8 @@ export class ReportesAsistenciaComponent implements OnInit {
   // ==========================================
   // 📊 VARIABLES DE ESTADO Y DATOS
   // ==========================================
-  historialCompleto: any[] = []; // Guarda TODOS los datos traídos por fecha
-  historialFiltrado: any[] = []; // Guarda los datos que se muestran en la tabla según la búsqueda
+  historialCompleto: any[] = [];
+  historialFiltrado: any[] = [];
   cargando = false;
 
   // Filtros de búsqueda
@@ -30,7 +31,7 @@ export class ReportesAsistenciaComponent implements OnInit {
 
   ngOnInit(): void {
     this.establecerFechasPorDefecto();
-    this.cargarReportesPorFechas(); // Carga inicial
+    this.cargarReportesPorFechas();
   }
 
   // ==========================================
@@ -41,53 +42,109 @@ export class ReportesAsistenciaComponent implements OnInit {
     const haceSieteDias = new Date();
     haceSieteDias.setDate(hoy.getDate() - 7);
 
-    this.fechaFin = hoy.toISOString().split('T')[0];
     this.fechaInicio = haceSieteDias.toISOString().split('T')[0];
+    this.fechaFin = hoy.toISOString().split('T')[0];
   }
 
   // ==========================================
-  // 🌐 PETICIÓN AL BACKEND (Solo por Fechas)
+  // 📥 FUNCIONES DE EXPORTACIÓN (PDF / EXCEL)
   // ==========================================
-  cargarReportesPorFechas() {
-    this.cargando = true;
-    this.cdr.detectChanges();
 
-    // OJO: Ya no le enviamos la "búsqueda" de texto al backend, traemos todo el bloque de fechas
-    this.api.obtenerReportes(this.fechaInicio, this.fechaFin, '').subscribe({
-      next: (res) => {
+  /**
+   * Genera el PDF tipo "Consolidado" que usa el ingeniero manualmente.
+   * Se abre en una pestaña nueva para disparar la descarga.
+   */
+  mostrarModalExportar = false;
+  tipoReporteSeleccionado: 'consolidado' | 'detallado' = 'consolidado';
+
+
+
+  abrirModalExportar(tipo: 'consolidado' | 'detallado') {
+    // Validamos primero que haya fechas seleccionadas
+    if (!this.fechaInicio || !this.fechaFin) {
+      alert("Por favor selecciona un rango de fechas antes de exportar.");
+      return;
+    }
+
+    // Guardamos qué botón presionó y abrimos el modal
+    this.tipoReporteSeleccionado = tipo;
+    this.mostrarModalExportar = true;
+  }
+
+  cerrarModalExportar() {
+    this.mostrarModalExportar = false;
+  }
+
+  exportar(formato: 'pdf' | 'excel') {
+    let endpoint = '';
+
+    if (this.tipoReporteSeleccionado === 'consolidado') {
+      endpoint = formato === 'pdf' ? 'general/pdf' : 'general/excel';
+    } else {
+      endpoint = formato === 'pdf' ? 'detallado/pdf' : 'detallado/excel';
+    }
+
+    const url = `${environment.apiUrl}/reportes/${endpoint}?inicio=${this.fechaInicio}&fin=${this.fechaFin}`;
+    window.open(url, '_blank');
+    this.cerrarModalExportar();
+  }
+
+
+  descargarGeneralPDF() {
+    if (!this.fechaInicio || !this.fechaFin) {
+      alert("Por favor selecciona un rango de fechas.");
+      return;
+    }
+    const url = `${environment.apiUrl}/reportes/general/pdf?inicio=${this.fechaInicio}&fin=${this.fechaFin}`;
+    window.open(url, '_blank');
+  }
+
+  /**
+   * Genera un Excel detallado con todos los registros y horas.
+   */
+  descargarDetalladoExcel() {
+    if (!this.fechaInicio || !this.fechaFin) {
+      alert("Por favor selecciona un rango de fechas.");
+      return;
+    }
+    const url = `${environment.apiUrl}/reportes/detallado/excel?inicio=${this.fechaInicio}&fin=${this.fechaFin}`;
+    window.open(url, '_blank');
+  }
+
+  // ==========================================
+  // 🔍 CARGA Y FILTRADO DE DATOS
+  // ==========================================
+
+  cargarReportesPorFechas() {
+    if (!this.fechaInicio || !this.fechaFin) return;
+
+    this.cargando = true;
+    this.api.obtenerReportes(this.fechaInicio, this.fechaFin).subscribe({
+      next: (res: any) => {
         this.historialCompleto = res.data || [];
-        this.filtrarEnTiempoReal(); // Aplicamos el filtro al instante por si ya había texto
+        this.filtrarEnTiempoReal();
         this.cargando = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar reportes', err);
-        this.historialCompleto = [];
-        this.historialFiltrado = [];
         this.cargando = false;
         this.cdr.detectChanges();
       }
     });
   }
 
-  // ==========================================
-  // ⚡ FILTRO INSTANTÁNEO EN EL CLIENTE (Frontend)
-  // ==========================================
   filtrarEnTiempoReal() {
-    // Si la barra está vacía, mostramos todo el historial de esas fechas
     if (!this.busqueda || this.busqueda.trim() === '') {
       this.historialFiltrado = [...this.historialCompleto];
       return;
     }
 
     const termino = this.busqueda.toLowerCase().trim();
-
-    // Filtramos al instante buscando coincidencias en DNI, nombres, apellidos o áreas
     this.historialFiltrado = this.historialCompleto.filter(h =>
       (h.trabajador?.dni && h.trabajador.dni.includes(termino)) ||
       (h.trabajador?.nombres && h.trabajador.nombres.toLowerCase().includes(termino)) ||
       (h.trabajador?.apellidos && h.trabajador.apellidos.toLowerCase().includes(termino)) ||
-      (h.turno?.area && h.turno.area.toLowerCase().includes(termino)) ||
       (h.trabajador?.area && h.trabajador.area.toLowerCase().includes(termino))
     );
   }
