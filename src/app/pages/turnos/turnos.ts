@@ -13,9 +13,12 @@ import Swal from 'sweetalert2';
 })
 export class Turnos implements OnInit {
   turnoForm: FormGroup;
-  turnos: any[] = [];
+
+  turnos: any[] = []; // Lista original plana
+  turnosAgrupados: any[] = []; // 🔥 NUEVO: Lista agrupada por día
 
   // Variables de control de Interfaz
+  vistaAgrupada: boolean = true; // 🔥 NUEVO: Por defecto mostramos la vista agrupada
   mostrarModal = false;
   modoEdicion = false;
   idEditando: number | null = null;
@@ -35,7 +38,6 @@ export class Turnos implements OnInit {
       es_nocturno: [false]
     });
 
-    // Lógica: Si no es "Turno de Trabajo", deshabilitamos horas
     this.turnoForm.get('tipo_registro')?.valueChanges.subscribe(tipo => {
       if (tipo !== 'Turno de Trabajo') {
         this.turnoForm.get('hora_entrada')?.disable();
@@ -48,8 +50,6 @@ export class Turnos implements OnInit {
   }
 
   ngOnInit(): void {
-    // 1. Ejecutamos el cierre automático de turnos pasados
-    // 2. Cargamos la lista fresca
     this.turnoService.ejecutarAutoCierre().subscribe(() => {
       this.cargarTurnos();
     });
@@ -57,9 +57,32 @@ export class Turnos implements OnInit {
 
   cargarTurnos() {
     this.turnoService.getTurnos().subscribe({
-      next: (data) => this.turnos = data,
+      next: (data) => {
+        this.turnos = data;
+        this.agruparTurnos(); // 🔥 Llamamos a la magia de agrupación
+      },
       error: (err) => console.error('Error al cargar turnos', err)
     });
+  }
+
+  // 🔥 NUEVA FUNCIÓN: Toma la lista plana y la agrupa por la columna "fecha"
+  agruparTurnos() {
+    const grupos = this.turnos.reduce((acumulador: any[], turno: any) => {
+      // Buscamos si ya existe un grupo para esta fecha
+      let grupo = acumulador.find(g => g.fecha === turno.fecha);
+
+      // Si no existe, creamos la "Tarjeta del Día"
+      if (!grupo) {
+        grupo = { fecha: turno.fecha, turnosDelDia: [] };
+        acumulador.push(grupo);
+      }
+
+      // Metemos el turno dentro de su día correspondiente
+      grupo.turnosDelDia.push(turno);
+      return acumulador;
+    }, []);
+
+    this.turnosAgrupados = grupos;
   }
 
   // --- GESTIÓN DE MODAL ---
@@ -83,7 +106,6 @@ export class Turnos implements OnInit {
     this.modoEdicion = true;
     this.idEditando = turno.id;
 
-    // Seteamos los valores (ajustamos fechas para el input)
     this.turnoForm.patchValue({
       area: turno.area,
       fecha_inicio: turno.fecha,
@@ -108,7 +130,6 @@ export class Turnos implements OnInit {
     const datos = this.turnoForm.getRawValue();
 
     if (this.modoEdicion && this.idEditando) {
-      // ACTUALIZAR (Puntual)
       this.turnoService.updateTurno(this.idEditando, datos).subscribe({
         next: () => {
           Swal.fire('Actualizado', 'Turno corregido con éxito', 'success');
@@ -116,7 +137,6 @@ export class Turnos implements OnInit {
         }
       });
     } else {
-      // CREAR (Masivo)
       this.turnoService.crearTurno(datos).subscribe({
         next: (res) => {
           Swal.fire('¡Éxito!', res.message, 'success');

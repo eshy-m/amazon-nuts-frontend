@@ -1,13 +1,16 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
-import { Turno } from './turno';
+import { TurnoService } from './turno';
 
-describe('Turno', () => {
-  let service: Turno;
+describe('TurnoService', () => {
+  let service: TurnoService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Turno);
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule]
+    });
+    service = TestBed.inject(TurnoService);
   });
 
   it('should be created', () => {
