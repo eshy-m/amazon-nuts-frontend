@@ -1,10 +1,106 @@
-<div
-    class="flex flex-col items-center justify-center min-h-[60vh] bg-white rounded-xl shadow-sm border border-gray-200">
-    <svg class="w-20 h-20 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-        </path>
-    </svg>
-    <h2 class="text-2xl font-bold text-gray-400">Bienvenido al Panel</h2>
-    <p class="text-gray-400 mt-2">Seleccione una opción del menú lateral izquierdo para comenzar.</p>
+<div class="p-6 bg-gray-50 min-h-screen">
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-black text-gray-800 tracking-tight">Centro de Control de Planta</h1>
+        <p class="text-sm text-gray-500 mt-1">Estado de operatividad y asistencia de Amazon Nuts SAC en tiempo real</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Personal Presente</p>
+                <h3 class="text-2xl font-black text-gray-800">{{ kpis.presentes_hoy }} <span
+                        class="text-sm font-medium text-gray-400">/ {{ kpis.total_personal }}</span></h3>
+                <p class="text-xs text-blue-600 font-bold mt-1">{{ kpis.porcentaje_asistencia }}% de operatividad</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Faltas de Hoy</p>
+                <h3 class="text-2xl font-black text-gray-800">{{ kpis.faltas_hoy }}</h3>
+                <p class="text-xs text-red-600 font-bold mt-1">Impacto directo en línea</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Llegadas Tarde</p>
+                <h3 class="text-2xl font-black text-gray-800">{{ kpis.tardanzas_hoy }}</h3>
+                <p class="text-xs text-orange-600 font-bold mt-1">Retraso en arranque</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center"
+                [ngClass]="kpis.faltas_hoy > 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-500">Estado de Planta</p>
+                <h3 class="text-xl font-black mt-1" [ngClass]="kpis.faltas_hoy > 5 ? 'text-red-600' : 'text-green-600'">
+                    {{ kpis.faltas_hoy > 5 ? 'En Riesgo' : 'Óptimo' }}
+                </h3>
+                <p class="text-xs text-gray-400 font-medium mt-1">Basado en ausentismo</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Personal Presente por Área</h2>
+            <div class="w-full flex justify-center items-center" style="min-height: 250px;">
+                <canvas *ngIf="chartReady" baseChart [data]="pieChartData" [type]="pieChartType"
+                    [options]="pieChartOptions">
+                </canvas>
+                <div *ngIf="!chartReady" class="text-gray-400 font-medium animate-pulse flex flex-col items-center">
+                    <svg class="w-10 h-10 mb-2 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Procesando métricas...
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2 flex flex-col justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100 border-dashed border-2">
+            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+            <h3 class="text-lg font-bold text-gray-500">Próximamente: Histórico Semanal y Costos</h3>
+            <p class="text-sm text-gray-400 mt-2 text-center max-w-sm">Aquí agregaremos la tendencia histórica de
+                asistencias (Gráfico de Líneas) y el consolidado de horas extras monetizadas.</p>
+        </div>
+    </div>
+
 </div>

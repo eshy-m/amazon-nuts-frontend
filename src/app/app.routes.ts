@@ -14,7 +14,7 @@ import { EscanerQrComponent } from './pages/escaner-qr/escaner-qr'; // 🔥 NUEV
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout';
 
 // 📦 Componentes del Panel de Administración (Hijos)
-import { Dashboard } from './pages/dashboard/dashboard';
+import { DashboardComponent } from './pages/dashboard/dashboard';
 import { Admin } from './pages/admin/admin'; // Cotizaciones/Mensajes
 import { Trabajador } from './components/trabajador/trabajador';
 import { Asistencia } from './components/asistencia/asistencia';
@@ -49,7 +49,7 @@ export const routes: Routes = [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
             // Módulos del sistema
-            { path: 'dashboard', component: Dashboard },
+            { path: 'dashboard', component: DashboardComponent },
             { path: 'cotizaciones', component: Admin }, // Bandeja de mensajes de la web
             { path: 'turnos', component: Turnos }, // Programación de turnos
             { path: 'escaner-qr', component: EscanerQrComponent },

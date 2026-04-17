@@ -46,4 +46,10 @@ export class AsistenciaService {
 
     return this.http.get(`${this.apiUrl}/reportes`, { params });
   }
+  // ==========================================
+  // 📊 DASHBOARD
+  // ==========================================
+  obtenerMetricasDashboard() {
+    return this.http.get(`${this.apiUrl}/dashboard/metricas`);
+  }
 }
