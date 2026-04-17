@@ -52,6 +52,22 @@ export class Trabajador implements OnInit {
   public fotoSeleccionada: File | null = null;
   public fotoPreview: string | ArrayBuffer | null = null;
 
+  public mediosPago = [
+    { v: 'Efectivo', l: '💵 Efectivo (En planta)' },
+    { v: 'Yape', l: '📱 Yape' },
+    { v: 'Plin', l: '📱 Plin' },
+    { v: 'BCP', l: '🏦 BCP' },
+    { v: 'Interbank', l: '🏦 Interbank' },
+    { v: 'BBVA', l: '🏦 BBVA' },
+    { v: 'Banco de la Nacion', l: '🏦 Banco de la Nación' },
+    { v: 'Caja', l: '🏦 Caja (Piura, Arequipa, etc.)' }
+  ];
+
+  public condicionesLaborales = [
+    { v: 'Estable', l: 'Estable (Planilla)' },
+    { v: 'Eventual', l: 'Eventual / Destajo' }
+  ];
+
   // Objeto del formulario
   public trabajador: any = this.obtenerFormularioVacio();
 
