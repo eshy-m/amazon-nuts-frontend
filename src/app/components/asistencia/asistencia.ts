@@ -174,4 +174,33 @@ export class Asistencia implements OnInit {
       this.cdr.detectChanges();
     }, 3500);
   }
+  // ==========================================
+  // 🕒 FORMATO DE HORAS (De decimal a texto)
+  // ==========================================
+  formatoHoras(horasDecimal: number | string | null): string {
+    // Si no hay horas o viene nulo, retornamos los guiones
+    if (!horasDecimal || horasDecimal === '') return '--';
+
+    // 1. Convertimos a número y aplicamos Math.abs para quitar el negativo (-9.04 -> 9.04)
+    const total = Math.abs(Number(horasDecimal));
+
+    if (isNaN(total)) return '--';
+
+    // 2. Extraemos las horas enteras (9)
+    const horas = Math.floor(total);
+
+    // 3. Convertimos los decimales restantes a minutos (0.04 * 60 = 2.4 -> redondeado a 2)
+    const minutos = Math.round((total - horas) * 60);
+
+    // 4. Construimos el texto amigable
+    if (horas > 0 && minutos > 0) {
+      return `${horas} h y ${minutos} min`;
+    } else if (horas > 0) {
+      return `${horas} h`;
+    } else if (minutos > 0) {
+      return `${minutos} min`;
+    } else {
+      return '--';
+    }
+  }
 }

@@ -23,6 +23,7 @@
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">H. Entrada</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">H. Salida</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Horas</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-purple-200">H. EXTRAS</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider">Estado</th>
                     </tr>
                 </thead>
@@ -57,7 +58,11 @@
                         </td>
 
                         <td class="py-3 px-4 text-center font-bold text-gray-700 bg-gray-50/50">
-                            {{ a.horas_trabajadas ? a.horas_trabajadas + ' h' : '--' }}
+                            {{ formatoHoras(a.horas_trabajadas) }}
+                            <!-- {{ a.horas_trabajadas ? a.horas_trabajadas + ' h' : '--' }}-->
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap font-bold text-purple-400">
+                            {{ formatoHoras(a.horas_extras) }}
                         </td>
 
                         <td class="py-3 px-4">
