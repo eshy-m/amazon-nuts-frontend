@@ -1,0 +1,86 @@
+<div class="w-full bg-gray-50 min-h-screen p-6">
+    <div class="mb-8">
+        <h1 class="text-3xl font-black text-gray-800 tracking-tight">Configuración Maestra</h1>
+        <p class="text-sm text-gray-500 mt-1">Administración de procesos de planta y perfiles de recursos humanos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                🏭 Áreas de Producción
+            </h2>
+
+            <div class="flex gap-2 mb-6 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input type="text" [(ngModel)]="nuevaArea.nombre" placeholder="Ej. Selección en Faja"
+                    class="flex-1 rounded-lg border-gray-300 px-4 py-2 focus:ring-green-500 focus:border-green-500 outline-none border">
+                <button (click)="guardarArea()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-all">
+                    + Agregar
+                </button>
+            </div>
+
+            <div class="overflow-hidden border border-gray-100 rounded-lg">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100 text-gray-600 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-4 font-bold text-sm uppercase">Nombre del Área</th>
+                            <th class="py-3 px-4 font-bold text-sm uppercase text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let area of areas" class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-gray-800">{{ area.nombre }}</td>
+                            <td class="py-3 px-4 text-center">
+                                <span
+                                    class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Activo</span>
+                            </td>
+                        </tr>
+                        <tr *ngIf="areas.length === 0">
+                            <td colspan="2" class="py-6 text-center text-gray-400 italic">No hay áreas registradas</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                👷 Perfiles / Cargos
+            </h2>
+
+            <div class="flex gap-2 mb-6 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input type="text" [(ngModel)]="nuevoCargo.nombre" placeholder="Ej. Operario"
+                    class="flex-1 rounded-lg border-gray-300 px-4 py-2 focus:ring-blue-500 focus:border-blue-500 outline-none border">
+                <button (click)="guardarCargo()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all">
+                    + Agregar
+                </button>
+            </div>
+
+            <div class="overflow-hidden border border-gray-100 rounded-lg">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100 text-gray-600 border-b border-gray-200">
+                        <tr>
+                            <th class="py-3 px-4 font-bold text-sm uppercase">Nombre del Cargo</th>
+                            <th class="py-3 px-4 font-bold text-sm uppercase text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let cargo of cargos" class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-gray-800">{{ cargo.nombre }}</td>
+                            <td class="py-3 px-4 text-center">
+                                <span
+                                    class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Activo</span>
+                            </td>
+                        </tr>
+                        <tr *ngIf="cargos.length === 0">
+                            <td colspan="2" class="py-6 text-center text-gray-400 italic">No hay cargos registrados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

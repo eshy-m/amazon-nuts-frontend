@@ -79,7 +79,7 @@
                         <th class="py-4 px-2 font-bold text-sm uppercase tracking-wider text-center">N°</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">DNI</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Trabajador</th>
-                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Área</th>
+                        <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Cargo</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Fecha Inicio</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Contacto</th>
                         <th class="py-4 px-4 font-bold text-sm uppercase tracking-wider text-center">Dirección</th>
@@ -126,9 +126,11 @@
                         </td>
 
                         <td class="py-3 px-4">
-                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold block w-max">{{
-                                t.area }}</span>
+                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold block w-max">
+                                {{ t.cargo_maestro?.nombre || t.cargo || '---' }}
+                            </span>
                         </td>
+
                         <td class="py-3 px-4 text-sm text-gray-700 font-medium">
                             <span *ngIf="t.fecha_inicio">📅 {{ t.fecha_inicio }}</span>
                             <span *ngIf="!t.fecha_inicio" class="text-gray-300">---</span>
@@ -145,7 +147,6 @@
                             <div class="text-[12px] text-gray-600 truncate max-w-[150px]" [title]="t.direccion">{{
                                 t.direccion || '---' }}</div>
                         </td>
-                        <!--FECHA FIN-->
                         <td class="py-3 px-4 text-center">
                             <span *ngIf="esTrabajadorActivo(t)"
                                 class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200 shadow-sm">
@@ -258,18 +259,18 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">DNI <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" [(ngModel)]="form.dni" maxlength="8"
+                        <input type="text" [(ngModel)]="trabajador.dni" maxlength="8"
                             class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 outline-none font-mono">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Nacimiento</label>
-                        <input type="date" [(ngModel)]="form.fecha_nacimiento"
+                        <input type="date" [(ngModel)]="trabajador.fecha_nacimiento"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Género <span
                                 class="text-red-500">*</span></label>
-                        <select [(ngModel)]="form.genero"
+                        <select [(ngModel)]="trabajador.genero"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
                             <option value="">Seleccione...</option>
                             <option value="M">Masculino</option>
@@ -282,13 +283,13 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombres <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" [(ngModel)]="form.nombres"
+                        <input type="text" [(ngModel)]="trabajador.nombres"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Apellidos <span
                                 class="text-red-500">*</span></label>
-                        <input type="text" [(ngModel)]="form.apellidos"
+                        <input type="text" [(ngModel)]="trabajador.apellidos"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                 </div>
@@ -299,38 +300,31 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Área / Cargo <span
-                                class="text-red-500">*</span></label>
-                        <select [(ngModel)]="form.area"
-                            class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
-                            <option value="">Seleccione...</option>
-                            <option value="GERENTE">GERENTE</option>
-                            <option value="JEFE DE CONTROL DE CALIDAD">JEFE DE CONTROL DE CALIDAD</option>
-                            <option value="JEFE DE PRODUCCIÓN">JEFE DE PRODUCCIÓN</option>
-                            <option value="PRACTICANTE">PRACTICANTE</option>
-                            <option value="OPERARIO">OPERARIO</option>
-                            <option value="SELECCIÓN">SELECCIÓN</option>
-                            <option value="CLASIFICADO">CLASIFICADO</option>
-                            <option value="SECADO">SECADO</option>
-                            <option value="ENVASADO">ENVASADO</option>
-                            <option value="ALMACÉN">ALMACÉN</option>
-                            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                            <option value="ADMINISTRACIÓN">ADMINISTRACIÓN</option>
-                            <option value="LOGÍSTICA">LOGÍSTICA</option>
-                            <option value="COMERCIAL">COMERCIAL</option>
-                            <option value="PROMOTOR">PROMOTOR</option>
-                            <option value="CALIDAD">CALIDAD</option>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cargo (Fijo)</label>
+                        <select [(ngModel)]="trabajador.cargo_id"
+                            class="w-full border rounded-xl py-3 px-4 outline-none focus:border-blue-500 bg-white">
+                            <option value="">-- Seleccione Cargo --</option>
+                            <option *ngFor="let c of cargosMaestros" [value]="c.id">{{ c.nombre }}</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Área Sugerida</label>
+                        <select [(ngModel)]="trabajador.area_id"
+                            class="w-full border rounded-xl py-3 px-4 outline-none focus:border-green-500 bg-white">
+                            <option value="">-- Seleccione Área --</option>
+                            <option *ngFor="let a of areasMaestras" [value]="a.id">{{ a.nombre }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha Contrato</label>
-                        <input type="date" [(ngModel)]="form.fecha_inicio"
+                        <input type="date" [(ngModel)]="trabajador.fecha_inicio"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                     <div class="flex items-end pb-1">
                         <label class="flex items-center gap-2 cursor-pointer group">
                             <div class="relative flex items-center justify-center">
-                                <input type="checkbox" [(ngModel)]="form.experiencia_bool"
+                                <input type="checkbox" [(ngModel)]="trabajador.experiencia_bool"
                                     class="peer appearance-none w-6 h-6 border-2 border-gray-300 rounded checked:bg-green-600 checked:border-green-600 transition-colors cursor-pointer">
                                 <svg class="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -351,14 +345,14 @@
                     <div class="flex gap-4">
                         <label
                             class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
-                            <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion" value="Estable"
-                                class="text-green-600 focus:ring-green-500">
+                            <input type="radio" [(ngModel)]="trabajador.condicion_laboral" name="condicion"
+                                value="Estable" class="text-green-600 focus:ring-green-500">
                             <span class="font-bold text-gray-700 text-sm">Estable (Planilla)</span>
                         </label>
                         <label
                             class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
-                            <input type="radio" [(ngModel)]="form.condicion_laboral" name="condicion" value="Eventual"
-                                class="text-green-600 focus:ring-green-500">
+                            <input type="radio" [(ngModel)]="trabajador.condicion_laboral" name="condicion"
+                                value="Eventual" class="text-green-600 focus:ring-green-500">
                             <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
                         </label>
                     </div>
@@ -375,23 +369,23 @@
                         <div class="flex gap-4">
                             <label
                                 class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1 transition-colors hover:bg-green-50">
-                                <input type="radio" [(ngModel)]="form.activo" name="estado_activo" [value]="true"
+                                <input type="radio" [(ngModel)]="trabajador.activo" name="estado_activo" [value]="true"
                                     class="text-green-600 focus:ring-green-500">
                                 <span class="font-bold text-gray-700 text-sm">🟢 Activo</span>
                             </label>
                             <label
                                 class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1 transition-colors hover:bg-red-50">
-                                <input type="radio" [(ngModel)]="form.activo" name="estado_activo" [value]="false"
+                                <input type="radio" [(ngModel)]="trabajador.activo" name="estado_activo" [value]="false"
                                     class="text-red-600 focus:ring-red-500">
                                 <span class="font-bold text-gray-700 text-sm">🔴 Cese</span>
                             </label>
                         </div>
                     </div>
 
-                    <div *ngIf="!esFormularioActivo()">
+                    <div *ngIf="!trabajador.activo">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fecha de Salida / Cese <span
                                 class="text-red-500">*</span></label>
-                        <input type="date" [(ngModel)]="form.fecha_fin"
+                        <input type="date" [(ngModel)]="trabajador.fecha_fin"
                             class="w-full border border-red-300 bg-red-50 rounded-lg p-2 outline-none focus:ring-2 focus:ring-red-500 transition-all">
                     </div>
                 </div>
@@ -404,18 +398,18 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Vencimiento Carnet
                             Sanidad</label>
-                        <input type="date" [(ngModel)]="form.fecha_vencimiento_carnet"
+                        <input type="date" [(ngModel)]="trabajador.fecha_vencimiento_carnet"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contacto de
                             Emergencia</label>
-                        <input type="text" [(ngModel)]="form.contacto_emergencia" placeholder="Ej: María (Esposa)"
+                        <input type="text" [(ngModel)]="trabajador.contacto_emergencia" placeholder="Ej: María (Esposa)"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">N° de Emergencia</label>
-                        <input type="text" [(ngModel)]="form.numero_emergencia" placeholder="Ej: 999 888 777"
+                        <input type="text" [(ngModel)]="trabajador.numero_emergencia" placeholder="Ej: 999 888 777"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-green-500">
                     </div>
                 </div>
@@ -427,7 +421,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Medio de Pago</label>
-                        <select [(ngModel)]="form.tipo_pago"
+                        <select [(ngModel)]="trabajador.tipo_pago"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white focus:ring-2 focus:ring-green-500">
                             <option value="">Seleccione...</option>
                             <option value="Efectivo">💵 Efectivo (En planta)</option>
@@ -441,13 +435,14 @@
                         </select>
                     </div>
 
-                    <div *ngIf="form.tipo_pago && form.tipo_pago !== 'Efectivo'">
+                    <div *ngIf="trabajador.tipo_pago && trabajador.tipo_pago !== 'Efectivo'">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1 text-blue-600">
-                            {{ form.tipo_pago === 'Yape' || form.tipo_pago === 'Plin' ? 'Ingrese su número ' +
-                            form.tipo_pago : 'Ingrese su N° cuenta o CCI' }}
+                            {{ trabajador.tipo_pago === 'Yape' || trabajador.tipo_pago === 'Plin' ? 'Ingrese su número '
+                            +
+                            trabajador.tipo_pago : 'Ingrese su N° cuenta o CCI' }}
                         </label>
-                        <input type="text" [(ngModel)]="form.cuenta_pago"
-                            [placeholder]="form.tipo_pago === 'Yape' || form.tipo_pago === 'Plin' ? 'Ej: 987654321' : 'Ej: 215-12345678-0-99'"
+                        <input type="text" [(ngModel)]="trabajador.cuenta_pago"
+                            [placeholder]="trabajador.tipo_pago === 'Yape' || trabajador.tipo_pago === 'Plin' ? 'Ej: 987654321' : 'Ej: 215-12345678-0-99'"
                             class="w-full border border-blue-300 bg-blue-50 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
                     </div>
                 </div>
@@ -460,17 +455,17 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">N° Celular</label>
-                        <input type="text" [(ngModel)]="form.celular"
+                        <input type="text" [(ngModel)]="trabajador.celular"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dirección</label>
-                        <input type="text" [(ngModel)]="form.direccion"
+                        <input type="text" [(ngModel)]="trabajador.direccion"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Observación</label>
-                        <textarea [(ngModel)]="form.observaciones" rows="2"
+                        <textarea [(ngModel)]="trabajador.observaciones" rows="2"
                             placeholder="Alergias, notas médicas, etc..."
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none"></textarea>
                     </div>

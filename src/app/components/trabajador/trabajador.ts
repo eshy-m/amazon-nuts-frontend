@@ -2,15 +2,17 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
-// 🔥 IMPORTACIONES PARA REPORTES Y FOTOCHECK
+// 🔥 IMPORTACIÓN DE SWEETALERT (Para las alertas bonitas)
+import Swal from 'sweetalert2';
+
+// IMPORTACIONES PARA REPORTES Y FOTOCHECK
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-// 🔥 NUEVA IMPORTACIÓN: Para capturar HTML como imagen para el Fotocheck
 import html2canvas from 'html2canvas';
 
-// Variables de entorno y servicio...
 import { environment } from '../../../environments/environment';
 import { TrabajadorService } from '../../services/trabajador';
 
@@ -24,11 +26,16 @@ import { TrabajadorService } from '../../services/trabajador';
 export class Trabajador implements OnInit {
 
   public baseStorageUrl: string = environment.storageUrl;
+  public apiUrl: string = environment.apiUrl;
 
   // Variables para la Vista
   public lista: any[] = [];
   public estadisticas: any[] = [];
   public totalPersonal: number = 0;
+
+  // Variables para Maestros (Cargos y Áreas)
+  public cargosMaestros: any[] = [];
+  public areasMaestras: any[] = [];
 
   // Control de Modales
   public mostrarModalForm = false;
@@ -36,26 +43,30 @@ export class Trabajador implements OnInit {
   public trabajadorSeleccionado: any = null;
   public esEdicion = false;
 
-  // 🔍 Variables para Buscador y Paginación
+  // Variables para Buscador y Paginación
   public textoBusqueda: string = '';
   public paginaActual: number = 1;
   public itemsPorPagina: number = 10;
+
   // Variables de Foto
   public fotoSeleccionada: File | null = null;
   public fotoPreview: string | ArrayBuffer | null = null;
 
   // Objeto del formulario
-  public form: any = this.obtenerFormularioVacio();
+  public trabajador: any = this.obtenerFormularioVacio();
 
   constructor(
     private api: TrabajadorService,
+    private http: HttpClient,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.cargarDatos();
+    this.cargarMaestros();
   }
 
+  // 🔥 ESTA ES LA FUNCIÓN MAESTRA QUE RECARGA LA TABLA Y LAS ESTADÍSTICAS JUNTAS
   cargarDatos() {
     this.api.listar().subscribe((res: any) => {
       this.lista = res.data;
@@ -68,11 +79,21 @@ export class Trabajador implements OnInit {
       this.cdr.detectChanges();
     });
   }
+
+  cargarMaestros() {
+    this.http.get(`${this.apiUrl}/maestros/cargos`).subscribe((res: any) => {
+      if (res.status) this.cargosMaestros = res.data;
+    });
+
+    this.http.get(`${this.apiUrl}/maestros/areas`).subscribe((res: any) => {
+      if (res.status) this.areasMaestras = res.data;
+    });
+  }
+
   // ==========================================
-  // 🔍 LÓGICA DE BÚSQUEDA Y PAGINACIÓN
+  // LÓGICA DE BÚSQUEDA Y PAGINACIÓN
   // ==========================================
 
-  // 1. Primero filtramos por lo que escriba el usuario
   get trabajadoresFiltrados() {
     if (!this.textoBusqueda) {
       return this.lista;
@@ -85,36 +106,10 @@ export class Trabajador implements OnInit {
     );
   }
 
-  // 2. Luego cortamos (paginamos) la lista filtrada
   get trabajadoresPaginados() {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
     return this.trabajadoresFiltrados.slice(inicio, fin);
-  }
-
-  // 3. Calculamos cuántas páginas totales hay
-  get totalPaginas() {
-    return Math.ceil(this.trabajadoresFiltrados.length / this.itemsPorPagina);
-  }
-
-  // 4. Creamos un arreglo para los botones [1], [2], [3]
-  get paginas() {
-    return Array(this.totalPaginas).fill(0).map((x, i) => i + 1);
-  }
-
-  // 5. Funciones para los botones
-  cambiarPagina(pagina: number) {
-    if (pagina >= 1 && pagina <= this.totalPaginas) {
-      this.paginaActual = pagina;
-    }
-  }
-
-  cambiarItemsPorPagina() {
-    this.paginaActual = 1; // Si cambias a "Ver 20", te regresamos a la página 1
-  }
-
-  buscar() {
-    this.paginaActual = 1; // Al buscar, siempre reiniciamos a la página 1
   }
 
   get itemInicial(): number {
@@ -122,15 +117,34 @@ export class Trabajador implements OnInit {
   }
 
   get itemFinal(): number {
-    return Math.min(this.paginaActual * this.itemsPorPagina, this.trabajadoresFiltrados.length);
+    const final = this.paginaActual * this.itemsPorPagina;
+    return final > this.trabajadoresFiltrados.length ? this.trabajadoresFiltrados.length : final;
+  }
+
+  get totalPaginas() {
+    return Math.ceil(this.trabajadoresFiltrados.length / this.itemsPorPagina);
+  }
+
+  get paginas() {
+    return Array(this.totalPaginas).fill(0).map((x, i) => i + 1);
+  }
+
+  cambiarPagina(pagina: number) {
+    if (pagina >= 1 && pagina <= this.totalPaginas) {
+      this.paginaActual = pagina;
+    }
+  }
+
+  cambiarItemsPorPagina() {
+    this.paginaActual = 1;
+  }
+
+  buscar() {
+    this.paginaActual = 1;
   }
 
   esTrabajadorActivo(t: any): boolean {
     return t.activo == 1 || t.activo === true || t.activo === '1';
-  }
-
-  esFormularioActivo(): boolean {
-    return this.form.activo == 1 || this.form.activo === true || this.form.activo === '1';
   }
 
   // ==========================================
@@ -142,7 +156,8 @@ export class Trabajador implements OnInit {
       dni: '',
       nombres: '',
       apellidos: '',
-      area: '',
+      cargo_id: '',
+      area_id: '',
       genero: '',
       condicion_laboral: 'Estable',
       celular: '',
@@ -163,7 +178,7 @@ export class Trabajador implements OnInit {
 
   abrirModalNuevo() {
     this.esEdicion = false;
-    this.form = this.obtenerFormularioVacio();
+    this.trabajador = this.obtenerFormularioVacio();
     this.fotoSeleccionada = null;
     this.fotoPreview = null;
     this.mostrarModalForm = true;
@@ -171,8 +186,11 @@ export class Trabajador implements OnInit {
 
   editar(t: any) {
     this.esEdicion = true;
-    this.form = { ...t };
-    this.form.experiencia_bool = (t.experiencia === 'SÍ');
+    this.trabajador = { ...t };
+    this.trabajador.cargo_id = t.cargo_id || '';
+    this.trabajador.area_id = t.area_id || '';
+
+    this.trabajador.experiencia_bool = (t.experiencia === 'SÍ');
     this.fotoPreview = t.foto ? this.baseStorageUrl + t.foto : null;
     this.fotoSeleccionada = null;
     this.mostrarModalForm = true;
@@ -180,7 +198,7 @@ export class Trabajador implements OnInit {
 
   cerrarModalForm() {
     this.mostrarModalForm = false;
-    this.form = this.obtenerFormularioVacio();
+    this.trabajador = this.obtenerFormularioVacio();
     this.fotoSeleccionada = null;
     this.fotoPreview = null;
   }
@@ -199,7 +217,7 @@ export class Trabajador implements OnInit {
     const file: File = event.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert('La imagen es muy pesada. Máximo 2MB.');
+        Swal.fire('Atención', 'La imagen es muy pesada. Máximo 2MB.', 'warning');
         return;
       }
       this.fotoSeleccionada = file;
@@ -212,102 +230,126 @@ export class Trabajador implements OnInit {
   }
 
   // ==========================================
-  // 💾 GUARDAR / ELIMINAR (Se mantiene)
+  // 💾 GUARDAR / ACTUALIZAR (CON SWEETALERT)
   // ==========================================
   guardar() {
-    if (!this.form.dni || String(this.form.dni).length !== 8) {
-      alert('El DNI debe tener exactamente 8 dígitos.');
+    // Validación con SweetAlert
+    if (!this.trabajador.dni || String(this.trabajador.dni).length !== 8) {
+      Swal.fire('Atención', 'El DNI debe tener exactamente 8 dígitos.', 'warning');
       return;
     }
-    if (!this.form.area || !this.form.genero || !this.form.nombres || !this.form.apellidos) {
-      alert('Por favor, completa los campos obligatorios (*).');
+    if (!this.trabajador.nombres || !this.trabajador.apellidos) {
+      Swal.fire('Atención', 'Por favor, completa los nombres y apellidos.', 'warning');
       return;
     }
-    const formData = new FormData();
-    formData.append('dni', this.form.dni);
-    formData.append('nombres', this.form.nombres);
-    formData.append('apellidos', this.form.apellidos);
-    formData.append('area', this.form.area);
-    formData.append('genero', this.form.genero);
-    formData.append('condicion_laboral', this.form.condicion_laboral);
-    formData.append('activo', this.form.activo ? '1' : '0');
-    // 🔥 ENVIAR LOS NUEVOS DATOS (Si es que el usuario los llenó)
 
-    if (this.form.fecha_vencimiento_carnet) formData.append('fecha_vencimiento_carnet', this.form.fecha_vencimiento_carnet);
-    if (this.form.contacto_emergencia) formData.append('contacto_emergencia', this.form.contacto_emergencia);
-    if (this.form.numero_emergencia) formData.append('numero_emergencia', this.form.numero_emergencia);
-    if (this.form.tipo_pago) formData.append('tipo_pago', this.form.tipo_pago);
-    if (this.form.fecha_vencimiento_carnet) formData.append('fecha_vencimiento_carnet', this.form.fecha_vencimiento_carnet);
-    if (this.form.contacto_emergencia) formData.append('contacto_emergencia', this.form.contacto_emergencia);
-    if (this.form.numero_emergencia) formData.append('numero_emergencia', this.form.numero_emergencia);
-    if (this.form.tipo_pago) formData.append('tipo_pago', this.form.tipo_pago);
-    if (this.form.cuenta_pago) formData.append('cuenta_pago', this.form.cuenta_pago);
-    if (this.form.cuenta_pago) formData.append('cuenta_pago', this.form.cuenta_pago);
-    if (this.form.fecha_fin) formData.append('fecha_fin', this.form.fecha_fin);
-    if (this.form.fecha_nacimiento) formData.append('fecha_nacimiento', this.form.fecha_nacimiento);
-    if (this.form.fecha_inicio) formData.append('fecha_inicio', this.form.fecha_inicio);
-    if (this.form.celular) formData.append('celular', this.form.celular);
-    if (this.form.direccion) formData.append('direccion', this.form.direccion);
-    if (this.form.observaciones) formData.append('observaciones', this.form.observaciones);
-    formData.append('experiencia', this.form.experiencia_bool ? 'SÍ' : 'NO');
+    const formData = new FormData();
+    formData.append('dni', this.trabajador.dni);
+    formData.append('nombres', this.trabajador.nombres);
+    formData.append('apellidos', this.trabajador.apellidos);
+    formData.append('cargo_id', this.trabajador.cargo_id);
+    formData.append('area_id', this.trabajador.area_id);
+    formData.append('genero', this.trabajador.genero);
+    formData.append('condicion_laboral', this.trabajador.condicion_laboral);
+    formData.append('activo', this.trabajador.activo ? '1' : '0');
+
+    if (this.trabajador.fecha_vencimiento_carnet) formData.append('fecha_vencimiento_carnet', this.trabajador.fecha_vencimiento_carnet);
+    if (this.trabajador.contacto_emergencia) formData.append('contacto_emergencia', this.trabajador.contacto_emergencia);
+    if (this.trabajador.numero_emergencia) formData.append('numero_emergencia', this.trabajador.numero_emergencia);
+    if (this.trabajador.tipo_pago) formData.append('tipo_pago', this.trabajador.tipo_pago);
+    if (this.trabajador.cuenta_pago) formData.append('cuenta_pago', this.trabajador.cuenta_pago);
+    if (this.trabajador.fecha_fin) formData.append('fecha_fin', this.trabajador.fecha_fin);
+    if (this.trabajador.fecha_nacimiento) formData.append('fecha_nacimiento', this.trabajador.fecha_nacimiento);
+    if (this.trabajador.fecha_inicio) formData.append('fecha_inicio', this.trabajador.fecha_inicio);
+    if (this.trabajador.celular) formData.append('celular', this.trabajador.celular);
+    if (this.trabajador.direccion) formData.append('direccion', this.trabajador.direccion);
+    if (this.trabajador.observaciones) formData.append('observaciones', this.trabajador.observaciones);
+    formData.append('experiencia', this.trabajador.experiencia_bool ? 'SÍ' : 'NO');
+
     if (this.fotoSeleccionada) {
       formData.append('foto', this.fotoSeleccionada);
     }
 
-
     if (this.esEdicion) {
-      this.api.actualizarConFoto(this.form.id, formData).subscribe({
+      this.api.actualizarConFoto(this.trabajador.id, formData).subscribe({
         next: () => {
-          alert('¡Trabajador actualizado con éxito!');
+          Swal.fire('¡Actualizado!', 'Trabajador modificado con éxito', 'success');
           this.cerrarModalForm();
-          this.cargarDatos();
+          this.cargarDatos(); // 🔥 Llamamos a cargarDatos
         },
         error: (err) => {
           console.error(err);
-          alert('Error al actualizar.');
+          Swal.fire('Error', 'Hubo un problema al actualizar.', 'error');
         }
       });
     } else {
       this.api.registrar(formData as any).subscribe({
         next: () => {
-          alert('¡Trabajador registrado con éxito!');
+          Swal.fire('¡Registrado!', 'Trabajador creado con éxito', 'success');
           this.cerrarModalForm();
-          this.cargarDatos();
+          this.cargarDatos(); // 🔥 Llamamos a cargarDatos
         },
         error: (err) => {
           console.error(err);
-          alert('Error al registrar.');
-        }
-      });
-    }
-  }
-
-  eliminar(id: number) {
-    if (confirm('¿Estás seguro?')) {
-      this.api.eliminar(id).subscribe({
-        next: () => {
-          alert('Eliminado.');
-          this.cargarDatos();
-        },
-        error: (err) => {
-          console.error(err);
-          alert('Error.');
+          Swal.fire('Error', 'Hubo un problema al registrar.', 'error');
         }
       });
     }
   }
 
   // ==========================================
-  // 📊 EXPORTAR A EXCEL (Todo el contenido)
+  // 🗑️ ELIMINAR (CON SWEETALERT)
+  // ==========================================
+  eliminar(id: number) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "Se eliminará al trabajador, su foto y su fotocheck. ¡Esta acción no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#9ca3af',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.eliminar(id).subscribe({
+          next: () => {
+            Swal.fire('¡Eliminado!', 'El trabajador ha sido eliminado.', 'success');
+            this.cargarDatos(); // 🔥 Llamamos a cargarDatos
+          },
+          error: (err) => {
+            console.error(err);
+            Swal.fire('Error', 'No se pudo eliminar al trabajador.', 'error');
+          }
+        });
+      }
+    });
+  }
+
+  // ==========================================
+  // 📊 EXPORTAR A EXCEL 
   // ==========================================
   exportarExcel() {
     const dataAExportar = this.lista.map((t, index) => ({
-      'N°': index + 1, 'DNI': t.dni, 'Nombres': t.nombres, 'Apellidos': t.apellidos, 'Fecha Nacimiento': t.fecha_nacimiento || '---', 'Género': t.genero, 'Área / Cargo': t.area, 'Condición Laboral': t.condicion_laboral, 'Fecha Inicio (Contrato)': t.fecha_inicio || '---', 'Celular': t.celular || '---', 'Dirección': t.direccion || '---', 'Experiencia': t.experiencia || 'NO', 'Observaciones': t.observaciones || '---'
+      'N°': index + 1,
+      'DNI': t.dni,
+      'Nombres': t.nombres,
+      'Apellidos': t.apellidos,
+      'Fecha Nacimiento': t.fecha_nacimiento || '---',
+      'Género': t.genero,
+      'Área': t.area_maestra?.nombre || t.area_id || '---',
+      'Cargo': t.cargo_maestro?.nombre || t.cargo_id || '---',
+      'Condición Laboral': t.condicion_laboral,
+      'Fecha Inicio (Contrato)': t.fecha_inicio || '---',
+      'Celular': t.celular || '---',
+      'Dirección': t.direccion || '---',
+      'Experiencia': t.experiencia || 'NO',
+      'Observaciones': t.observaciones || '---'
     }));
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataAExportar);
     const workbook: XLSX.WorkBook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Trabajadores');
-    XLSX.writeFile(workbook, 'Reporte_Personal_AmazonNuts.xlsx');
+    XLSX.writeFile(workbook, 'Reporte_Personal.xlsx');
   }
 
   // ==========================================
@@ -330,138 +372,99 @@ export class Trabajador implements OnInit {
   }
 
   async exportarPDF() {
-    // 1. Iniciamos PDF Horizontal (landscape), A4
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
 
     try {
-      // 2. 🔥 Cargar el Logo desde Assets
       const logoUrl = 'assets/img/logo_reporte.png';
       const logoBase64 = await this.loadImage(logoUrl);
 
-      // 3. 🟢 DISEÑAR CABECERA (Estilo exacto del modelo)
+      doc.addImage(logoBase64, 'JPEG', 14, 10, 35, 15);
 
-      // Logo (Izquierda)
-      doc.addImage(logoBase64, 'JPEG', 14, 10, 35, 15); // x, y, ancho, alto
-
-      // Título Central
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(20);
-      doc.setTextColor(30, 41, 59); // Gris oscuro
-      doc.text('LISTA DE PERSONAL DE CAMPAÑA 2026', pageWidth / 2, 20, { align: 'center' });
+      doc.setTextColor(30, 41, 59);
+      doc.text('LISTA DE PERSONAL', pageWidth / 2, 20, { align: 'center' });
 
-      // Fecha (Derecha)
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(100);
       const fechaActual = new Date().toLocaleDateString();
       doc.text(`FECHA: ${fechaActual}`, pageWidth - 14, 20, { align: 'right' });
 
-      // 4. 🟢 MAPEAR DATOS A LA TABLA (Añadiendo Fecha de Inicio)
       const headers = [
-        ['N°',
-          'DNI',
-          'APELLIDOS Y NOMBRES',
-          'ÁREA / CARGO',
-          'FECHA INICIO',
-          'CONTACTO',
-          'DIRECCIÓN',
-          'ESTADO',
-          'EXPERIENCIA']
+        ['N°', 'DNI', 'APELLIDOS Y NOMBRES', 'CARGO / ÁREA', 'FECHA INICIO', 'CONTACTO', 'DIRECCIÓN', 'ESTADO']
       ];
+
       const dataPDF = this.lista.map((t, index) => [
         index + 1,
         t.dni,
-        `${t.apellidos}, ${t.nombres}`, // Combinado
-        t.area,
-        t.fecha_inicio ? t.fecha_inicio : '---', // 🔥 NUEVA COLUMNA AQUÍ
+        `${t.apellidos}, ${t.nombres}`,
+        `${t.cargo_maestro?.nombre || ''} / ${t.area_maestra?.nombre || ''}`,
+        t.fecha_inicio ? t.fecha_inicio : '---',
         t.celular || '---',
         t.direccion || '---',
-        t.activo ? 'ACTIVO' : 'INACTIVO' + '\n' + t.fecha_fin,
-        t.experiencia || 'NO'
+        t.activo ? 'ACTIVO' : 'INACTIVO' + '\n' + t.fecha_fin
       ]);
 
-      // 5. 🟢 GENERAR TABLA CON AUTO-TABLE (Anchos recalculados)
       autoTable(doc, {
         head: headers,
         body: dataPDF,
-        startY: 32, // Debajo de la cabecera
+        startY: 32,
         theme: 'grid',
-        styles: { fontSize: 8.5, cellPadding: 3, valign: 'middle' }, // Letra un poquitito más pequeña para que encaje todo
-
-        // Estilo de Cabecera (Verde exacto estilo Amazon Nuts)
-        headStyles: {
-          fillColor: [21, 128, 61],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          halign: 'center'
-        },
-
-        // Configuración de anchos ajustada para 8 columnas
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 10 }, // N°
-          1: { halign: 'center', cellWidth: 20 }, // DNI
-          2: { cellWidth: 60 },                   // Apellidos y Nombres
-          3: { cellWidth: 40 },                   // Área / Cargo
-          4: { halign: 'center', cellWidth: 25 }, // 🔥 FECHA INICIO
-          5: { halign: 'center', cellWidth: 23 }, // Celular
-          // La columna 6 (Dirección) toma el espacio restante automáticamente
-          7: { halign: 'center', cellWidth: 28 }  // Experiencia
-        },
-
-        alternateRowStyles: { fillColor: [245, 250, 245] },
+        styles: { fontSize: 8.5, cellPadding: 3, valign: 'middle' },
+        headStyles: { fillColor: [21, 128, 61], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
       });
 
-      // 6. 🟢 DESCARGAR EL ARCHIVO
-      doc.save(`LISTA_PERSONAL_AMAZON_NUTS_CAMPAÑA_2026_${fechaActual}.pdf`);
+      doc.save(`LISTA_PERSONAL_${fechaActual}.pdf`);
 
     } catch (error) {
       console.error('Error generando PDF:', error);
-      alert('Hubo un error al generar el PDF. Asegúrate de haber guardado el logo en "assets/img/logo_reporte.png".');
+      Swal.fire('Aviso', 'Error generando PDF. Asegúrate de tener el logo_reporte.png', 'warning');
     }
   }
 
   // ==========================================
-  // 🔥🔥🔥 NUEVA FUNCIÓN: GENERAR PDF PVC ESTÁNDAR
+  // 🔥 GENERAR PDF FOTOCHECK
   // ==========================================
   generarPDF_Fotocheck(t: any) {
     const DATA = document.getElementById('fotocheck_preview');
 
     if (!DATA) {
-      alert('Error: No se pudo encontrar el área de previsualización del fotocheck.');
+      Swal.fire('Error', 'No se pudo encontrar el área de previsualización del fotocheck.', 'error');
       return;
     }
 
-    // Mostramos un mensaje de espera, ya que html2canvas puede tardar un poco
-    alert('Generando PDF del fotocheck en tamaño estándar PVC. Por favor espere...');
+    // Alerta de cargando para el fotocheck
+    Swal.fire({
+      title: 'Generando Fotocheck...',
+      text: 'Por favor espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
-    // Capturamos el HTML (#fotocheck_preview) como una imagen de alta calidad
     html2canvas(DATA, {
-      scale: 3, // Aumentamos la escala para mayor resolución en la impresión
-      useCORS: true, // Importante para cargar la foto de Hostinger y el QR SVG
+      scale: 3,
+      useCORS: true,
       logging: false,
       backgroundColor: '#ffffff'
     }).then(canvas => {
-
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-      // 🔥 CREAMOS PDF CON TAMAÑO ESTÁNDAR PVC VERTICAL ($86\text{mm x }54\text{mm}$)
-      // El formato es [ancho, alto]
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: [54, 86] // Tamaño exacto de tarjeta PVC Vertical
+        format: [54, 86]
       });
 
-      // Añadimos la imagen capturada al PDF ocupando todo el tamaño de la página (sin márgenes)
       doc.addImage(imgData, 'JPEG', 0, 0, 54, 86);
-
-      // Guardamos el PDF con el nombre del trabajador
       const nombreArchivo = `Fotocheck_${t.dni}_${t.apellidos.replace(/ /g, '_')}.pdf`;
       doc.save(nombreArchivo);
 
-      alert('¡PDF del Fotocheck generado con éxito! Imprímelo en tamaño real (sin ajustar) para que coincida con tus micas.');
+      Swal.fire('¡Éxito!', 'PDF generado correctamente. Imprímelo en tamaño real.', 'success');
+    }).catch(err => {
+      Swal.fire('Error', 'Hubo un problema al generar la imagen del fotocheck.', 'error');
     });
   }
-
 }

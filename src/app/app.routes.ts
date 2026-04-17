@@ -20,6 +20,7 @@ import { Trabajador } from './components/trabajador/trabajador';
 import { Asistencia } from './components/asistencia/asistencia';
 import { ReportesAsistenciaComponent } from './components/reportes-asistencia/reportes-asistencia';
 import { Turnos } from './pages/turnos/turnos';
+import { ConfiguracionComponent } from './pages/configuracion/configuracion';
 
 // ==========================================
 // 🚀 CONFIGURACIÓN DE RUTAS
@@ -56,6 +57,7 @@ export const routes: Routes = [
             { path: 'trabajador', component: Trabajador }, // Gestión de personal
             { path: 'asistencia', component: Asistencia }, // Monitoreo de asistencia del día
             { path: 'reportes-asistencia', component: ReportesAsistenciaComponent }, // Historial y filtros
+            { path: 'configuracion', component: ConfiguracionComponent }, // Historial y filtros
         ]
     },
 
