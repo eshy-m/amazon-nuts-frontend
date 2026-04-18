@@ -77,11 +77,14 @@
                         <td class="py-3 px-4">
                             <p class="font-bold text-gray-800">{{ h.trabajador?.nombres }} {{ h.trabajador?.apellidos }}
                             </p>
+                            <p class="text-[10px] text-blue-600 font-black uppercase tracking-wide mt-0.5">
+                                {{ h.trabajador?.cargo_maestro?.nombre || 'Sin Cargo' }}
+                            </p>
                         </td>
 
                         <td class="py-3 px-4">
                             <span class="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-                                {{ h.turno?.area || h.trabajador?.area || 'Sin Área' }}
+                                {{ h.trabajador?.area_maestra?.nombre || 'Sin Área' }}
                                 <span *ngIf="!h.turno" title="Área por defecto (Sin turno asignado)">⚠️</span>
                             </span>
                         </td>
@@ -100,9 +103,9 @@
                         </td>
 
                         <td class="py-3 px-4 text-center font-bold text-gray-700">
-                            {{ formatoHoras(h.horas_trabajadas)}}
-                            <!---  {{ h.horas_trabajadas ? h.horas_trabajadas + ' h' : '--' }}-->
+                            {{ formatoHoras(h.horas_trabajadas) }}
                         </td>
+
                         <td class="px-5 py-4 whitespace-nowrap text-sm font-bold text-purple-700">
                             {{ formatoHoras(h.horas_extras) }}
                         </td>
@@ -129,7 +132,7 @@
                     </tr>
 
                     <tr *ngIf="historialFiltrado.length === 0 && !cargando">
-                        <td colspan="8" class="text-center py-12">
+                        <td colspan="9" class="text-center py-12">
                             <div class="text-gray-400 text-4xl mb-3">🔍</div>
                             <p class="text-gray-500 font-medium">No se encontraron registros de asistencia.</p>
                             <p class="text-sm text-gray-400 mt-1">Intenta con otra búsqueda o ampliando el rango de

@@ -139,7 +139,7 @@ export class Asistencia implements OnInit {
   // ==========================================
   reproducirSonido(esError: boolean) {
     // Si es error busca 'error.mp3', si no, busca 'success.mp3'
-    const tipo = esError ? 'error' : 'success';
+    const tipo = esError ? 'error' : 'exito';
 
     try {
       const audio = new Audio(`assets/sounds/${tipo}.mp3`);

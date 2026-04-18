@@ -35,11 +35,14 @@
                         <td class="py-3 px-4">
                             <p class="font-bold text-gray-800">{{ a.trabajador?.nombres }} {{ a.trabajador?.apellidos }}
                             </p>
+                            <p class="text-[10px] text-blue-600 font-black uppercase tracking-wide mt-0.5">
+                                {{ a.trabajador?.cargo_maestro?.nombre || 'Sin Cargo' }}
+                            </p>
                         </td>
 
                         <td class="py-3 px-4">
                             <span class="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-                                {{ a.turno?.area || a.trabajador?.area || 'Sin Área' }}
+                                {{ a.trabajador?.area_maestra?.nombre || 'Sin Área' }}
                                 <span *ngIf="!a.turno" title="Área por defecto">⚠️</span>
                             </span>
                         </td>
@@ -59,8 +62,8 @@
 
                         <td class="py-3 px-4 text-center font-bold text-gray-700 bg-gray-50/50">
                             {{ formatoHoras(a.horas_trabajadas) }}
-                            <!-- {{ a.horas_trabajadas ? a.horas_trabajadas  + ' h' : '--' }}-->
                         </td>
+
                         <td class="py-4 px-4 whitespace-nowrap font-bold text-purple-400">
                             {{ formatoHoras(a.horas_extras) }}
                         </td>
@@ -87,7 +90,7 @@
                     </tr>
 
                     <tr *ngIf="listaHoy.length === 0">
-                        <td colspan="7" class="text-center py-12">
+                        <td colspan="8" class="text-center py-12">
                             <p class="text-gray-500 font-medium">No hay registros de asistencia el día de hoy.</p>
                         </td>
                     </tr>
