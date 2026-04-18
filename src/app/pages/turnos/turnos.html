@@ -158,17 +158,16 @@
         </div>
     </div>
 
-    <div *ngIf="mostrarModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+    <div *ngIf="mostrarModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4 sm:p-6">
         <div
-            class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate__animated animate__fadeInUp">
+            class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden animate__animated animate__fadeInUp">
 
-            <div class="bg-gray-900 p-6 text-white flex justify-between items-center">
+            <div class="bg-gray-900 p-4 sm:p-6 text-white flex justify-between items-center flex-shrink-0">
                 <div>
-                    <h2 class="text-xl font-black">
+                    <h2 class="text-lg sm:text-xl font-black">
                         {{ modoEdicion ? 'Editar Turno' : 'Generar Programación Masiva' }}
                     </h2>
-                    <p class="text-gray-400 text-xs">Configura los turnos para múltiples áreas a la vez</p>
+                    <p class="text-gray-400 text-xs mt-1">Configura los turnos para múltiples áreas a la vez</p>
                 </div>
                 <button (click)="cerrarYCargar()" class="text-gray-400 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,76 +177,83 @@
                 </button>
             </div>
 
-            <form [formGroup]="turnoForm" (ngSubmit)="guardar()" class="p-8">
-                <div class="mb-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                            Seleccionar Áreas Asignadas
-                        </label>
-                        <button type="button" (click)="toggleTodasLasAreas()"
-                            class="text-[10px] font-extrabold px-3 py-1 rounded-full transition-all border-2"
-                            [ngClass]="todasAreasSeleccionadas ? 'bg-blue-600 border-blue-600 text-white' : 'bg-transparent border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-500'">
-                            {{ todasAreasSeleccionadas ? '✓ TODAS SELECCIONADAS' : '☐ SELECCIONAR TODAS' }}
-                        </button>
-                    </div>
+            <form [formGroup]="turnoForm" (ngSubmit)="guardar()" class="flex flex-col flex-1 overflow-hidden">
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                        <button *ngFor="let area of areasMaestras" type="button" (click)="toggleArea(area.id)"
-                            class="p-3 rounded-xl border-2 text-left transition-all relative group"
-                            [ngClass]="areasSeleccionadas.includes(area.id) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'">
-                            <span class="text-sm font-bold block">{{ area.nombre }}</span>
-                            <div *ngIf="areasSeleccionadas.includes(area.id)" class="absolute top-2 right-2">
-                                <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+                <div class="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
 
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Desde</label>
-                        <input type="date" formControlName="fecha_inicio"
-                            class="w-full p-4 bg-gray-50 rounded-xl border-0 font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Hasta</label>
-                        <input type="date" formControlName="fecha_fin"
-                            class="w-full p-4 bg-gray-50 rounded-xl border-0 font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Entrada</label>
-                            <input type="time" formControlName="hora_entrada"
-                                class="w-full p-3 bg-white border border-gray-200 rounded-lg font-bold text-gray-700 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Salida</label>
-                            <input type="time" formControlName="hora_salida"
-                                class="w-full p-3 bg-white border border-gray-200 rounded-lg font-bold text-gray-700 outline-none">
-                        </div>
-                        <div class="flex flex-col justify-center">
-                            <label class="flex items-center gap-2 cursor-pointer pt-4">
-                                <input type="checkbox" formControlName="es_nocturno"
-                                    class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="text-[10px] font-black text-gray-500 uppercase">¿Es Nocturno?</span>
+                    <div class="mb-6 sm:mb-8">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                                Seleccionar Áreas Asignadas
                             </label>
+                            <button type="button" (click)="toggleTodasLasAreas()"
+                                class="text-[10px] font-extrabold px-3 py-2 sm:py-1 rounded-full transition-all border-2"
+                                [ngClass]="todasAreasSeleccionadas ? 'bg-blue-600 border-blue-600 text-white' : 'bg-transparent border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-500'">
+                                {{ todasAreasSeleccionadas ? '✓ TODAS SELECCIONADAS' : '☐ SELECCIONAR TODAS' }}
+                            </button>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-40 sm:max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                            <button *ngFor="let area of areasMaestras" type="button" (click)="toggleArea(area.id)"
+                                class="p-3 rounded-xl border-2 text-left transition-all relative group"
+                                [ngClass]="areasSeleccionadas.includes(area.id) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200'">
+                                <span class="text-sm font-bold block pr-4">{{ area.nombre }}</span>
+                                <div *ngIf="areasSeleccionadas.includes(area.id)" class="absolute top-3 right-3">
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Desde</label>
+                            <input type="date" formControlName="fecha_inicio"
+                                class="w-full p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100 font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Hasta</label>
+                            <input type="date" formControlName="fecha_fin"
+                                class="w-full p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-100 font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-100">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Entrada</label>
+                                <input type="time" formControlName="hora_entrada"
+                                    class="w-full p-3 bg-white border border-gray-200 rounded-lg font-bold text-gray-700 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Salida</label>
+                                <input type="time" formControlName="hora_salida"
+                                    class="w-full p-3 bg-white border border-gray-200 rounded-lg font-bold text-gray-700 outline-none">
+                            </div>
+                            <div class="flex flex-col justify-center col-span-2 sm:col-span-1">
+                                <label class="flex items-center gap-2 cursor-pointer sm:pt-4">
+                                    <input type="checkbox" formControlName="es_nocturno"
+                                        class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-[10px] font-black text-gray-500 uppercase">¿Es Nocturno?</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                <div
+                    class="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:px-8 sm:py-6 border-t border-gray-100 bg-white flex-shrink-0">
                     <button type="button" (click)="cerrarYCargar()"
-                        class="px-8 py-4 text-gray-500 font-bold hover:bg-gray-100 rounded-2xl transition-all">
+                        class="w-full sm:w-auto px-8 py-3 sm:py-4 text-gray-500 font-bold hover:bg-gray-50 rounded-2xl transition-all border border-transparent hover:border-gray-200">
                         Descartar
                     </button>
                     <button type="submit"
-                        class="px-10 py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-100 hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95">
+                        class="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-100 hover:bg-green-700 transition-all transform hover:scale-105 active:scale-95">
                         🚀 Generar Planificación
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
