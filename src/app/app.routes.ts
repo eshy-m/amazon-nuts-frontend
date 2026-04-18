@@ -12,6 +12,7 @@ import { EscanerQrComponent } from './pages/escaner-qr/escaner-qr'; // 🔥 NUEV
 
 // 🛡️ Layout Principal del Administrador
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout';
+import { ControlOperacionesComponent } from './pages/control-operaciones/control-operaciones';
 
 // 📦 Componentes del Panel de Administración (Hijos)
 import { DashboardComponent } from './pages/dashboard/dashboard';
@@ -21,6 +22,9 @@ import { Asistencia } from './components/asistencia/asistencia';
 import { ReportesAsistenciaComponent } from './components/reportes-asistencia/reportes-asistencia';
 import { Turnos } from './pages/turnos/turnos';
 import { ConfiguracionComponent } from './pages/configuracion/configuracion';
+
+//Operaciones
+import { OperacionesFajaComponent } from './pages/operaciones-faja/operaciones-faja';
 
 // ==========================================
 // 🚀 CONFIGURACIÓN DE RUTAS
@@ -46,6 +50,9 @@ export const routes: Routes = [
         path: 'admin',
         component: AdminLayoutComponent,
         children: [
+
+            //operaciones
+            { path: 'operaciones/faja', component: OperacionesFajaComponent },
             // Redirección por defecto al entrar a /admin
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
@@ -58,6 +65,7 @@ export const routes: Routes = [
             { path: 'asistencia', component: Asistencia }, // Monitoreo de asistencia del día
             { path: 'reportes-asistencia', component: ReportesAsistenciaComponent }, // Historial y filtros
             { path: 'configuracion', component: ConfiguracionComponent }, // Historial y filtros
+            { path: 'operaciones/control', component: ControlOperacionesComponent },
         ]
     },
 

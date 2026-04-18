@@ -1,24 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// 🔥 1. CAMBIAMOS NgChartsModule POR BaseChartDirective
 import { BaseChartDirective } from 'ng2-charts';
-// 🔥 2. IMPORTAMOS Chart y registerables
 import { Chart, ChartConfiguration, ChartData, ChartType, registerables } from 'chart.js';
 import { AsistenciaService } from '../../services/asistencia';
 
-// 🔥 3. REGISTRAMOS LOS GRÁFICOS (Obligatorio en las nuevas versiones)
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  // 🔥 4. USAMOS BaseChartDirective EN LOS IMPORTS
   imports: [CommonModule, BaseChartDirective],
   templateUrl: './dashboard.html'
 })
 export class DashboardComponent implements OnInit {
 
-  // Variables para las Tarjetas Superiores
   kpis: any = {
     total_personal: 0,
     presentes_hoy: 0,
@@ -27,16 +22,14 @@ export class DashboardComponent implements OnInit {
     porcentaje_asistencia: 0
   };
 
-  // ==========================================
-  // 🍩 CONFIGURACIÓN DEL GRÁFICO DE DONA (Áreas)
-  // ==========================================
+  // 👇 Nueva variable para mostrar los últimos movimientos
+  ultimosRegistros: any[] = [];
+  cargandoRegistros = true;
+
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     plugins: {
-      legend: {
-        display: true,
-        position: 'bottom',
-      },
+      legend: { display: true, position: 'bottom' },
     }
   };
 
@@ -45,9 +38,9 @@ export class DashboardComponent implements OnInit {
     datasets: [{
       data: [],
       backgroundColor: ['#16a34a', '#2563eb', '#d97706', '#dc2626', '#9333ea', '#475569'],
-      hoverBackgroundColor: ['#15803d', '#1d4ed8', '#b45309', '#b91c1c', '#7e22ce', '#334155']
     }]
   };
+
   public pieChartType: ChartType = 'doughnut';
   public chartReady = false;
 
@@ -55,23 +48,31 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarMetricasDiarias();
+    this.cargarActividadReciente(); // 🔥 Nueva función
   }
 
   cargarMetricasDiarias() {
     this.api.obtenerMetricasDashboard().subscribe({
       next: (res: any) => {
-        if (res.status) {
-          this.kpis = res.data.kpis;
-
-          this.pieChartData.labels = res.data.graficos.areas.labels;
-          this.pieChartData.datasets[0].data = res.data.graficos.areas.data;
-
+        this.kpis = res;
+        if (res.por_area) {
+          this.pieChartData.labels = res.por_area.map((a: any) => a.area);
+          this.pieChartData.datasets[0].data = res.por_area.map((a: any) => a.cantidad);
           this.chartReady = true;
         }
-      },
-      error: (err) => {
-        console.error('Error al cargar el centro de control', err);
       }
+    });
+  }
+
+  // 🔥 Carga los últimos 5-10 registros para el feed de actividad
+  cargarActividadReciente() {
+    this.api.obtenerAsistenciasHoy().subscribe({
+      next: (res: any) => {
+        // Tomamos solo los primeros 6 para no saturar el dashboard
+        this.ultimosRegistros = res.data.slice(0, 6);
+        this.cargandoRegistros = false;
+      },
+      error: () => this.cargandoRegistros = false
     });
   }
 }
