@@ -13,7 +13,7 @@ import { environment } from '../../../environments/environment'; // 👈 Importa
 export class ReportesAsistenciaComponent implements OnInit {
 
   // ==========================================
-  // 📊 VARIABLES DE ESTADO Y DATOS
+  // 📊 VARIABLES DE ESTADO Y DATOS.
   // ==========================================
   historialCompleto: any[] = [];
   historialFiltrado: any[] = [];
