@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TurnoService } from '../../services/turno';
+import { MaestroService } from '../../services/maestro';
+import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -9,166 +10,234 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './turnos.html',
-  styleUrls: ['./turnos.css']
+  styleUrl: './turnos.css'
 })
 export class Turnos implements OnInit {
+  // --- PROPIEDADES ---
   turnoForm: FormGroup;
+  turnos: any[] = [];
+  turnosAgrupados: any[] = [];
 
-  turnos: any[] = []; // Lista original plana
-  turnosAgrupados: any[] = []; // 🔥 NUEVO: Lista agrupada por día
+  areasMaestras: any[] = [];
+  cargosMaestros: any[] = [];
 
-  // Variables de control de Interfaz
-  vistaAgrupada: boolean = true; // 🔥 NUEVO: Por defecto mostramos la vista agrupada
+  areasSeleccionadas: number[] = [];
+  todasAreasSeleccionadas = false;
+
+  vistaAgrupada: boolean = true;
   mostrarModal = false;
   modoEdicion = false;
-  idEditando: number | null = null;
+  turnoIdSeleccionado: number | null = null;
 
-  areas: string[] = ['Jefe de Control de Calidad', 'Selección', 'Caldeo', 'Quebrado', 'Envasado', 'Mantenimiento'];
-  tiposRegistro: string[] = ['Turno de Trabajo', 'Día Libre', 'Vacaciones', 'Descanso Médico'];
-
-  constructor(private fb: FormBuilder, private turnoService: TurnoService) {
+  constructor(
+    private fb: FormBuilder,
+    private turnoService: TurnoService,
+    private maestroService: MaestroService
+  ) {
     this.turnoForm = this.fb.group({
-      area: ['', Validators.required],
       fecha_inicio: ['', Validators.required],
       fecha_fin: ['', Validators.required],
-      hora_entrada: ['08:00'],
-      hora_salida: ['17:00'],
+      hora_entrada: ['07:00', Validators.required],
+      hora_salida: ['16:00', Validators.required],
       tipo_registro: ['Turno de Trabajo', Validators.required],
-      tolerancia_minutos: [15],
+      tolerancia_minutos: [15, [Validators.required, Validators.min(0)]],
       es_nocturno: [false]
-    });
-
-    this.turnoForm.get('tipo_registro')?.valueChanges.subscribe(tipo => {
-      if (tipo !== 'Turno de Trabajo') {
-        this.turnoForm.get('hora_entrada')?.disable();
-        this.turnoForm.get('hora_salida')?.disable();
-      } else {
-        this.turnoForm.get('hora_entrada')?.enable();
-        this.turnoForm.get('hora_salida')?.enable();
-      }
     });
   }
 
   ngOnInit(): void {
-    this.turnoService.ejecutarAutoCierre().subscribe(() => {
-      this.cargarTurnos();
-    });
+    this.cargarDatos();
+    this.inicializarMaestros();
   }
 
-  cargarTurnos() {
+  // --- CARGA DE DATOS ---
+
+  cargarDatos() {
     this.turnoService.getTurnos().subscribe({
-      next: (data) => {
-        this.turnos = data;
-        this.agruparTurnos(); // 🔥 Llamamos a la magia de agrupación
+      next: (res: any) => {
+        this.turnos = res;
+        this.agruparPorDia();
       },
-      error: (err) => console.error('Error al cargar turnos', err)
+      error: (err) => console.error('Error al cargar turnos:', err)
     });
   }
 
-  // 🔥 NUEVA FUNCIÓN: Toma la lista plana y la agrupa por la columna "fecha"
-  agruparTurnos() {
-    const grupos = this.turnos.reduce((acumulador: any[], turno: any) => {
-      // Buscamos si ya existe un grupo para esta fecha
-      let grupo = acumulador.find(g => g.fecha === turno.fecha);
+  inicializarMaestros() {
+    this.maestroService.getAreas().subscribe({
+      next: (res: any) => this.areasMaestras = res.data || res,
+      error: (err) => console.error('Error al traer áreas:', err)
+    });
 
-      // Si no existe, creamos la "Tarjeta del Día"
-      if (!grupo) {
-        grupo = { fecha: turno.fecha, turnosDelDia: [] };
-        acumulador.push(grupo);
+    this.maestroService.getCargos().subscribe({
+      next: (res: any) => this.cargosMaestros = res.data || res,
+      error: (err) => console.error('Error al traer cargos:', err)
+    });
+  }
+
+  agruparPorDia() {
+    const grupos: any = {};
+    this.turnos.forEach(t => {
+      if (!grupos[t.fecha]) {
+        const partes = t.fecha.split('-');
+        const fechaObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+        const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+
+        grupos[t.fecha] = {
+          fecha: t.fecha,
+          fechaBonita: fechaObj.toLocaleDateString('es-ES', opciones),
+          turnos: []
+        };
+      }
+      grupos[t.fecha].turnos.push(t);
+    });
+    this.turnosAgrupados = Object.values(grupos).sort((a: any, b: any) => b.fecha.localeCompare(a.fecha));
+  }
+
+  // --- LÓGICA DE SELECCIÓN ---
+
+  toggleArea(id: number) {
+    const index = this.areasSeleccionadas.indexOf(id);
+    if (index > -1) {
+      this.areasSeleccionadas.splice(index, 1);
+      this.todasAreasSeleccionadas = false;
+    } else {
+      this.areasSeleccionadas.push(id);
+      if (this.areasSeleccionadas.length === this.areasMaestras.length) {
+        this.todasAreasSeleccionadas = true;
+      }
+    }
+  }
+
+  toggleTodasLasAreas() {
+    this.todasAreasSeleccionadas = !this.todasAreasSeleccionadas;
+    this.areasSeleccionadas = this.todasAreasSeleccionadas ? this.areasMaestras.map(a => a.id) : [];
+  }
+
+  // --- ACCIONES PRINCIPALES ---
+
+  guardar(): void {
+    if (this.turnoForm.invalid) {
+      Swal.fire('Atención', 'Completa todos los campos obligatorios', 'warning');
+      return;
+    }
+
+    const formulario = this.turnoForm.value;
+
+    if (this.modoEdicion && this.turnoIdSeleccionado) {
+      // EDICIÓN: Corregido para enviar 'tipo_registro' y evitar el error 1048 del Log
+      const datosEdicion = {
+        fecha: formulario.fecha_inicio,
+        hora_entrada: formulario.hora_entrada,
+        hora_salida: formulario.hora_salida,
+        es_nocturno: formulario.es_nocturno ? 1 : 0,
+        area_id: this.areasSeleccionadas[0],
+        tipo_registro: formulario.tipo_registro || 'Turno de Trabajo',
+        tolerancia_minutos: formulario.tolerancia_minutos
+      };
+
+      this.turnoService.updateTurno(this.turnoIdSeleccionado, datosEdicion).subscribe({
+        next: () => {
+          Swal.fire('¡Éxito!', 'Turno actualizado correctamente', 'success');
+          this.cerrarYCargar();
+        },
+        error: (err) => {
+          console.error("Error al editar:", err);
+          Swal.fire('Error', 'No se pudo editar el turno', 'error');
+        }
+      });
+
+    } else {
+      // CREACIÓN: Masiva
+      if (this.areasSeleccionadas.length === 0) {
+        Swal.fire('Atención', 'Selecciona al menos un área', 'warning');
+        return;
       }
 
-      // Metemos el turno dentro de su día correspondiente
-      grupo.turnosDelDia.push(turno);
-      return acumulador;
-    }, []);
+      const datosMasivos = {
+        ...formulario,
+        es_nocturno: formulario.es_nocturno ? 1 : 0,
+        areas_ids: this.areasSeleccionadas,
+        cargos_ids: this.cargosMaestros.map(c => c.id) // Enviamos todos los cargos
+      };
 
-    this.turnosAgrupados = grupos;
+      this.turnoService.crearTurno(datosMasivos).subscribe({
+        next: () => {
+          Swal.fire('¡Registrado!', 'La planificación se generó con éxito', 'success');
+          this.cerrarYCargar();
+        },
+        error: (err) => {
+          console.error('Error al crear:', err);
+          Swal.fire('Error', 'Hubo un fallo al registrar los turnos', 'error');
+        }
+      });
+    }
   }
-
-  // --- GESTIÓN DE MODAL ---
 
   abrirModalNuevo() {
     this.modoEdicion = false;
-    this.idEditando = null;
+    this.turnoIdSeleccionado = null;
     this.turnoForm.reset({
+      hora_entrada: '07:00',
+      hora_salida: '16:00',
       tipo_registro: 'Turno de Trabajo',
       tolerancia_minutos: 15,
       es_nocturno: false
     });
+    this.areasSeleccionadas = [];
+    this.todasAreasSeleccionadas = false;
     this.mostrarModal = true;
   }
 
-  abrirModalEditar(turno: any) {
-    if (turno.estado === 'Cerrado') {
-      Swal.fire('Turno Cerrado', 'No se pueden editar turnos que ya finalizaron.', 'info');
-      return;
-    }
+  abrirEditar(turno: any) {
     this.modoEdicion = true;
-    this.idEditando = turno.id;
+    this.turnoIdSeleccionado = turno.id;
+    this.mostrarModal = true;
 
     this.turnoForm.patchValue({
-      area: turno.area,
       fecha_inicio: turno.fecha,
       fecha_fin: turno.fecha,
       hora_entrada: turno.hora_entrada,
       hora_salida: turno.hora_salida,
       tipo_registro: turno.tipo_registro,
       tolerancia_minutos: turno.tolerancia_minutos,
-      es_nocturno: turno.es_nocturno
+      es_nocturno: turno.es_nocturno === 1
     });
-    this.mostrarModal = true;
+
+    this.areasSeleccionadas = [turno.area_id];
   }
 
-  // --- ACCIONES ---
-
-  guardar() {
-    if (this.turnoForm.invalid) {
-      Swal.fire('Atención', 'Completa los campos obligatorios', 'warning');
-      return;
-    }
-
-    const datos = this.turnoForm.getRawValue();
-
-    if (this.modoEdicion && this.idEditando) {
-      this.turnoService.updateTurno(this.idEditando, datos).subscribe({
-        next: () => {
-          Swal.fire('Actualizado', 'Turno corregido con éxito', 'success');
-          this.cerrarYCargar();
-        }
-      });
-    } else {
-      this.turnoService.crearTurno(datos).subscribe({
-        next: (res) => {
-          Swal.fire('¡Éxito!', res.message, 'success');
-          this.cerrarYCargar();
-        }
-      });
-    }
+  cerrarYCargar() {
+    this.mostrarModal = false;
+    this.cargarDatos();
+    this.areasSeleccionadas = [];
+    this.todasAreasSeleccionadas = false;
   }
 
-  eliminar(id: number) {
+  eliminar(id: number): void {
     Swal.fire({
-      title: '¿Eliminar turno?',
-      text: "Esta acción no se puede deshacer si no hay asistencias.",
+      title: '¿Estás seguro?',
+      text: "Se eliminará este turno de la planificación.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      confirmButtonText: 'Sí, eliminar'
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
         this.turnoService.deleteTurno(id).subscribe({
           next: () => {
-            Swal.fire('Eliminado', 'El registro fue borrado.', 'success');
-            this.cargarTurnos();
+            Swal.fire('Eliminado', 'El turno ha sido quitado.', 'success');
+            this.cargarDatos();
           },
-          error: (err) => Swal.fire('Error', err.error.message, 'error')
+          error: () => Swal.fire('Error', 'No se pudo eliminar el turno.', 'error')
         });
       }
     });
   }
 
-  cerrarYCargar() {
-    this.mostrarModal = false;
-    this.cargarTurnos();
+  esPasado(fecha: string): boolean {
+    const hoy = new Date();
+    const hoyStr = hoy.toISOString().split('T')[0];
+    return fecha < hoyStr;
   }
 }

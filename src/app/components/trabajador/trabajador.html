@@ -61,7 +61,10 @@
             <label class="text-sm font-bold text-gray-500">Mostrar:</label>
             <select [(ngModel)]="itemsPorPagina" (change)="cambiarItemsPorPagina()"
                 class="border-none bg-transparent font-bold text-gray-700 text-sm outline-none cursor-pointer focus:ring-0">
-                <option *ngFor="let cant of [10, 20, 30, 50]" [value]="cant">{{ cant }}</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="30">30</option>
+                <option [value]="50">50</option>
                 <option [value]="lista.length">Todos</option>
             </select>
             <span class="text-sm font-medium text-gray-500">registros</span>
@@ -270,8 +273,8 @@
                         <select [(ngModel)]="trabajador.genero"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white">
                             <option value="">Seleccione...</option>
-                            <option *ngFor="let m of [{v: 'M', n: 'Masculino'}, {v: 'F', n: 'Femenino'}]" [value]="m.v">
-                                {{ m.n }}</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
                         </select>
                     </div>
                 </div>
@@ -340,11 +343,17 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Condición Laboral <span
                             class="text-red-500">*</span></label>
                     <div class="flex gap-4">
-                        <label *ngFor="let c of condicionesLaborales"
+                        <label
                             class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
                             <input type="radio" [(ngModel)]="trabajador.condicion_laboral" name="condicion"
-                                [value]="c.v" class="text-green-600 focus:ring-green-500">
-                            <span class="font-bold text-gray-700 text-sm">{{ c.l }}</span>
+                                value="Estable" class="text-green-600 focus:ring-green-500">
+                            <span class="font-bold text-gray-700 text-sm">Estable (Planilla)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-2 bg-gray-50 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer flex-1">
+                            <input type="radio" [(ngModel)]="trabajador.condicion_laboral" name="condicion"
+                                value="Eventual" class="text-green-600 focus:ring-green-500">
+                            <span class="font-bold text-gray-700 text-sm">Eventual / Destajo</span>
                         </label>
                     </div>
                 </div>
@@ -415,7 +424,14 @@
                         <select [(ngModel)]="trabajador.tipo_pago"
                             class="w-full border border-gray-300 rounded-lg p-2 outline-none bg-white focus:ring-2 focus:ring-green-500">
                             <option value="">Seleccione...</option>
-                            <option *ngFor="let mp of mediosPago" [value]="mp.v">{{ mp.l }}</option>
+                            <option value="Efectivo">💵 Efectivo (En planta)</option>
+                            <option value="Yape">📱 Yape</option>
+                            <option value="Plin">📱 Plin</option>
+                            <option value="BCP">🏦 BCP</option>
+                            <option value="Interbank">🏦 Interbank</option>
+                            <option value="BBVA">🏦 BBVA</option>
+                            <option value="Banco de la Nacion">🏦 Banco de la Nación</option>
+                            <option value="Caja">🏦 Caja (Piura, Arequipa, etc.)</option>
                         </select>
                     </div>
 

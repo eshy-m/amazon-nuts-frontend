@@ -28,9 +28,10 @@ export class AsistenciaService {
   // ✍️ REGISTRAR ASISTENCIA MANUAL (Opcional, por si se pierde un fotocheck)
   registrarAsistencia(trabajador_id: string): Observable<any> {
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     });
+
     return this.http.post(`${this.apiUrl}/registrar`, { trabajador_id }, { headers });
   }
 

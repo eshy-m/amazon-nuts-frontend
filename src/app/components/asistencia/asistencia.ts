@@ -15,7 +15,7 @@ export class Asistencia implements OnInit {
   // ==========================================
   // 📊 VARIABLES DE DATOS
   // ==========================================
-  listaHoy: any[] = []; // Almacena los registros del día actual
+  listaHoy: any[] = [];
 
   // ==========================================
   // 📷 VARIABLES DEL ESCÁNER Y MODAL
@@ -23,8 +23,8 @@ export class Asistencia implements OnInit {
   mostrarModalScanner = false;
   scannerHabilitado = false;
   mostrarModalManual = false;
-  procesando = false; // Bloquea múltiples escaneos accidentales
-  codigoManual: string = ''; // Modelo para el input de DNI manual
+  procesando = false;
+  codigoManual: string = '';
 
   camarasDisponibles: MediaDeviceInfo[] = [];
   dispositivoActual: MediaDeviceInfo | undefined;
@@ -35,172 +35,150 @@ export class Asistencia implements OnInit {
   mostrarModalRespuesta = false;
   esError = false;
   mensajeModal = '';
-  datosTrabajador: any = null;
+  datosTrabajador: any = null; // Aquí guardaremos el objeto 'data' del backend
 
   constructor(
-    private api: AsistenciaService,
+    private asistenciaService: AsistenciaService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
-    this.cargarTablaHoy();
+    this.cargarAsistenciasHoy();
   }
 
   // ==========================================
-  // 🔄 MÉTODOS DE DATOS (TABLA)
+  // 📥 1. CARGAR LISTADO DE HOY
   // ==========================================
-  cargarTablaHoy() {
-    this.api.obtenerAsistenciasHoy().subscribe({
+  cargarAsistenciasHoy() {
+    this.asistenciaService.obtenerAsistenciasHoy().subscribe({
       next: (res) => {
-        this.listaHoy = res.data;
-        this.cdr.detectChanges(); // Actualizamos la vista
+        if (res.status === 'success') {
+          this.listaHoy = res.data;
+        }
       },
-      error: (err) => console.error('Error al cargar la tabla de hoy:', err)
+      error: (err) => console.error('Error al cargar asistencias:', err)
     });
   }
 
   // ==========================================
-  // 🪟 CONTROL DE VENTANAS (MODALES Y CÁMARA)
+  // ✍️ 2. REGISTRO MANUAL (DNI/ID) - CORREGIDO
   // ==========================================
+  registrarManual() {
+    if (!this.codigoManual || this.procesando) return;
+
+    this.procesando = true;
+    this.asistenciaService.registrarAsistencia(this.codigoManual).subscribe({
+      next: (res) => {
+        if (res.status === 'success') {
+          // IMPORTANTE: Pasamos 'res.data' que contiene la asistencia + trabajador
+          this.abrirModalRespuesta(false, res.message, res.data);
+          this.cargarAsistenciasHoy();
+          this.codigoManual = '';
+          this.mostrarModalManual = false;
+        } else {
+          // Caso de "Acceso Denegado" o "Ya registró" que vienen con status error/warning
+          this.abrirModalRespuesta(true, res.message, res.data);
+        }
+      },
+      error: (err) => {
+        this.abrirModalRespuesta(true, err.error?.message || 'Error en el servidor');
+      },
+      complete: () => {
+        this.procesando = false;
+      }
+    });
+  }
+
+  // ==========================================
+  // 📷 3. LÓGICA DEL ESCÁNER QR
+  // ==========================================
+  onCodeResult(resultString: string) {
+    if (this.procesando) return;
+
+    this.procesando = true;
+    this.asistenciaService.registrarAsistencia(resultString).subscribe({
+      next: (res) => {
+        if (res.status === 'success') {
+          this.abrirModalRespuesta(false, res.message, res.data);
+          this.cargarAsistenciasHoy();
+          this.cerrarScanner();
+        } else {
+          this.abrirModalRespuesta(true, res.message, res.data);
+        }
+      },
+      error: (err) => {
+        this.abrirModalRespuesta(true, err.error?.message || 'Error al leer QR');
+      },
+      complete: () => {
+        this.procesando = false;
+      }
+    });
+  }
+
+  // ==========================================
+  // 🖥️ 4. GESTIÓN DE CÁMARAS
+  // ==========================================
+  camerasFound(devices: MediaDeviceInfo[]) {
+    this.camarasDisponibles = devices;
+    if (devices.length > 0) {
+      this.dispositivoActual = devices[0];
+    }
+  }
+
   abrirScanner() {
     this.mostrarModalScanner = true;
-
-    // Pequeño retraso para que Angular dibuje el modal antes de encender la cámara
-    setTimeout(() => {
-      this.scannerHabilitado = true;
-      this.cdr.detectChanges();
-    }, 100);
+    setTimeout(() => { this.scannerHabilitado = true; }, 300);
   }
 
   cerrarScanner() {
-    // 1. Apagamos la cámara primero para liberar hardware
     this.scannerHabilitado = false;
-    this.dispositivoActual = undefined;
-
-    // 2. Esperamos a que se apague antes de ocultar el modal
-    setTimeout(() => {
-      this.mostrarModalScanner = false;
-      this.cdr.detectChanges();
-    }, 200);
+    this.mostrarModalScanner = false;
   }
-
   // ==========================================
-  // 📷 CONTROL DE DISPOSITIVOS (CÁMARAS)
+  // 🔊 REPRODUCIR SONIDO (Tus archivos MP3)
   // ==========================================
+  reproducirSonido(esError: boolean) {
+    // Si es error busca 'error.mp3', si no, busca 'success.mp3'
+    const tipo = esError ? 'error' : 'success';
 
-  // 🔥 ACTUALIZADO: Detecta cámaras y elige AUTOMÁTICAMENTE la trasera
-  onCamarasEncontradas(camaras: MediaDeviceInfo[]) {
-    this.camarasDisponibles = camaras;
-
-    if (camaras && camaras.length > 0) {
-      // 🕵️‍♂️ Lógica para buscar la cámara trasera (environment / back / trasera)
-      // Convertimos el label a minúsculas para una búsqueda más segura
-      const camaraTrasera = camaras.find(camara =>
-        camara.label.toLowerCase().includes('back') ||
-        camara.label.toLowerCase().includes('environment') ||
-        camara.label.toLowerCase().includes('trasera')
-      );
-
-      // Si encuentra una que coincida con la descripción trasera, la usa.
-      // Sino, usa la primera disponible por defecto.
-      if (camaraTrasera) {
-        this.dispositivoActual = camaraTrasera;
-        console.log('✅ Cámara trasera seleccionada automáticamente:', camaraTrasera.label);
-      } else {
-        this.dispositivoActual = camaras[0];
-        console.log('⚠️ No se identificó cámara trasera explícita. Usando por defecto:', camaras[0].label);
-      }
+    try {
+      const audio = new Audio(`assets/sounds/${tipo}.mp3`);
+      // El .catch evita que la consola arroje error rojo si el navegador bloquea el autoplay
+      audio.play().catch(err => console.warn("Reproducción de audio evitada por el navegador:", err));
+    } catch (e) {
+      console.error("No se encontró el archivo de sonido", e);
     }
   }
-
   // ==========================================
-  // ⌨️ MÉTODOS DE REGISTRO
+  // 🔔 5. MODAL DE RESPUESTA (ÉXITO/ERROR)
   // ==========================================
-
-  registroManual() {
-    // Limpieza de espacios y validación segura
-    const codigoSeguro = String(this.codigoManual || '').trim();
-
-    if (!codigoSeguro || codigoSeguro === '') {
-      alert('Ingrese un DNI válido.');
-      return;
-    }
-
-    // Disparamos la misma función que usa el QR
-    this.onEscaneoExitoso(codigoSeguro);
-    this.codigoManual = ''; // Limpiamos el input
-  }
-
-  onEscaneoExitoso(resultadoQr: string) {
-    if (this.procesando) return; // Evita peticiones duplicadas
-
-    this.procesando = true;
-    this.cdr.detectChanges();
-
-    this.api.registrarAsistencia(resultadoQr).subscribe({
-      next: (res) => {
-        this.reproducirSonido('exito');
-        this.mostrarResultado(false, res.message, res.data);
-        this.cargarTablaHoy(); // Recargamos la tabla al instante
-      },
-      error: (err) => {
-        this.reproducirSonido('error');
-        const mensajeError = err?.error?.message || 'Error de comunicación';
-        this.mostrarResultado(true, mensajeError);
-      }
-    });
-  }
-
-  // ==========================================
-  // 🔔 FEEDBACK VISUAL Y SONORO
-  // ==========================================
-  reproducirSonido(tipo: 'exito' | 'error') {
-    const audio = new Audio(`assets/sounds/${tipo}.mp3`);
-    audio.play().catch(e => console.error('Audio bloqueado por navegador:', e));
-  }
-
-  mostrarResultado(esError: boolean, mensaje: string, datos: any = null) {
+  abrirModalRespuesta(esError: boolean, mensaje: string, datos: any = null) {
     this.esError = esError;
     this.mensajeModal = mensaje;
-    this.datosTrabajador = datos;
-
+    this.datosTrabajador = datos; // Guardamos el objeto completo para el HTML
+    this.reproducirSonido(esError);
     this.mostrarModalRespuesta = true;
-    this.cdr.detectChanges(); // Forzamos aparición inmediata
+    this.cdr.detectChanges();
 
-    // Ocultar automáticamente tras 3.5 segundos
+    // Auto-cierre del modal tras 4 segundos
     setTimeout(() => {
       this.mostrarModalRespuesta = false;
-      this.procesando = false;
+      this.datosTrabajador = null;
+      this.procesando = false; // Liberamos el escáner si estaba bloqueado
       this.cdr.detectChanges();
-    }, 3500);
+    }, 4000);
   }
+
   // ==========================================
-  // 🕒 FORMATO DE HORAS (De decimal a texto)
+  // 🕒 UTILIDADES DE FORMATO
   // ==========================================
   formatoHoras(horasDecimal: number | string | null): string {
-    // Si no hay horas o viene nulo, retornamos los guiones
     if (!horasDecimal || horasDecimal === '') return '--';
-
-    // 1. Convertimos a número y aplicamos Math.abs para quitar el negativo (-9.04 -> 9.04)
     const total = Math.abs(Number(horasDecimal));
-
     if (isNaN(total)) return '--';
 
-    // 2. Extraemos las horas enteras (9)
     const horas = Math.floor(total);
-
-    // 3. Convertimos los decimales restantes a minutos (0.04 * 60 = 2.4 -> redondeado a 2)
     const minutos = Math.round((total - horas) * 60);
-
-    // 4. Construimos el texto amigable
-    if (horas > 0 && minutos > 0) {
-      return `${horas} h y ${minutos} min`;
-    } else if (horas > 0) {
-      return `${horas} h`;
-    } else if (minutos > 0) {
-      return `${minutos} min`;
-    } else {
-      return '--';
-    }
+    return `${horas}h ${minutos}m`;
   }
 }
