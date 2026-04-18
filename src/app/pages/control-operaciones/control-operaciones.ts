@@ -129,13 +129,8 @@ export class ControlOperacionesComponent implements OnInit {
    * Obtiene los cálculos matemáticos desde el backend
    */
   obtenerMetricas() {
-    if (!this.loteActivo) return;
-
-    this.api.getMetricas(this.loteActivo.id).subscribe({
-      next: (res: any) => {
-        this.metricas = res;
-      },
-      error: (err) => console.error("Error al obtener métricas", err)
+    this.api.getMetricas(this.loteActivo.id).subscribe((res: any) => {
+      this.metricas = res; // <--- Aquí 'res' ya traerá 'historial_muestreos' desde el PHP
     });
   }
 }

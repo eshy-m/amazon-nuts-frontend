@@ -10,34 +10,6 @@
             </p>
         </div>
 
-        <div *ngIf="metricas.kpis.porcentaje_partida_muestreo > 0"
-            class="bg-white px-6 py-3 rounded-[2rem] shadow-xl border-b-4 flex items-center gap-6"
-            [ngClass]="metricas.kpis.porcentaje_partida_muestreo > 13 ? 'border-red-500' : 'border-emerald-500'">
-
-            <div>
-                <p class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Desglose Último Test (kg)
-                </p>
-                <div class="flex gap-4">
-                    <div class="text-center">
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Entera</p>
-                        <p class="text-lg font-black text-emerald-600">{{ metricas.kpis.ultimo_peso_entera }}</p>
-                    </div>
-                    <div class="text-center border-x px-4 border-slate-100">
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Partida</p>
-                        <p class="text-lg font-black text-red-600">{{ metricas.kpis.ultimo_peso_partida }}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Ojos</p>
-                        <p class="text-lg font-black text-amber-500">{{ metricas.kpis.ultimo_peso_ojos }}</p>
-                    </div>
-                    <div class="text-center ml-2">
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Podrido</p>
-                        <p class="text-lg font-black text-slate-400">{{ metricas.kpis.ultimo_peso_podrido }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div *ngIf="loteActivo"
             class="bg-slate-900 text-white px-8 py-4 rounded-[2rem] shadow-2xl border-b-4 border-blue-600">
             <p class="text-[10px] font-black uppercase opacity-60 tracking-[0.2em]">Materia Prima Cargada</p>
