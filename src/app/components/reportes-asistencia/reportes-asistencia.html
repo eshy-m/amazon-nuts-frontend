@@ -120,12 +120,12 @@
                                 <div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div> Tardanza
                             </span>
                             <span *ngIf="h.estado === 'Presente (Sin turno)'"
-                                class="text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-max">
-                                <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Sin Turno
+                                class="text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-max">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Presente
                             </span>
                             <span
                                 *ngIf="h.estado !== 'Puntual' && h.estado !== 'Tardanza' && h.estado !== 'Presente (Sin turno)'"
-                                class="text-gray-600 bg-gray-100 px-3 py-1 rounded-full text-xs font-bold w-max">
+                                class="text-gray-600 bg-gray-100 px-3 py-1 rounded-full text-xs font-bold w-max bg-gr">
                                 {{ h.estado }}
                             </span>
                         </td>
