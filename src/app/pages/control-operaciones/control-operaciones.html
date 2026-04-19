@@ -95,30 +95,33 @@
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 mt-6">
                 <p class="text-xs font-black uppercase text-slate-400 mb-4 tracking-tighter">Historial de Calibración
-                    (Tendencia)</p>
+                </p>
 
                 <div class="overflow-hidden">
                     <table class="w-full text-left">
                         <thead>
-                            <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-50">
+                            <tr class="text-[10px] uppercase text-slate-400 border-b border-slate-100">
                                 <th class="pb-2 font-black">Hora</th>
                                 <th class="pb-2 font-black text-center">Part.%</th>
-                                <th class="pb-2 font-black text-right">Detalle (P/O/E)</th>
+                                <th class="pb-2 font-black text-right">Detalle (P/O/E/PO)</th>
                             </tr>
                         </thead>
                         <tbody class="text-xs font-bold text-slate-600">
                             <tr *ngFor="let h of metricas.historial_muestreos"
-                                class="border-b border-slate-50 last:border-0">
-                                <td class="py-3 text-slate-400">{{ h.fecha | date:'HH:mm' }}</td>
+                                class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+                                <td class="py-3 text-slate-400 font-medium">{{ h.created_at | date:'HH:mm' }}</td>
                                 <td class="py-3 text-center">
-                                    <span [ngClass]="h.porcentaje_partida > 13 ? 'text-red-500' : 'text-emerald-500'">
+                                    <span [ngClass]="h.porcentaje_partida > 13 ? 'text-red-600' : 'text-emerald-500'">
                                         {{ h.porcentaje_partida }}%
                                     </span>
                                 </td>
-                                <td class="py-3 text-right text-[10px]">
-                                    {{ h.peso_partida }}kg / {{ h.peso_ojos }}kg / {{ h.peso_entera }}kg
+                                <td class="py-3 text-right text-[10px] tracking-tight">
+                                    <span class="text-red-500">{{ h.peso_partida }}kg</span> /
+                                    <span class="text-amber-500">{{ h.peso_ojos }}kg</span> /
+                                    <span class="text-emerald-500">{{ h.peso_entera }}kg</span> /
+                                    <span class="text-slate-400">{{ h.peso_podrido }}kg</span>
                                 </td>
                             </tr>
                             <tr *ngIf="!metricas.historial_muestreos?.length">
