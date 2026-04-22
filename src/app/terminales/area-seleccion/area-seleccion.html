@@ -1,0 +1,158 @@
+<div class="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+
+    <div class="bg-white p-4 flex justify-between items-center border-b border-slate-200 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Planta de Proceso</span>
+                <h1 class="text-xl font-black text-slate-800 leading-none">AMAZON <span
+                        class="text-emerald-600">NUTS</span></h1>
+            </div>
+            <div class="h-8 w-[1px] bg-slate-200"></div>
+            <div class="text-sm font-black text-blue-600">Lote #{{ loteActivo?.id || '---' }}</div>
+        </div>
+
+        <div class="flex gap-3">
+            <button (click)="cerrarLote()"
+                class="bg-slate-900 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-sm">Finalizar
+                Lote</button>
+            <button (click)="logout()"
+                class="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                    <path fill-rule="evenodd"
+                        d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="p-4 grid grid-cols-4 gap-4">
+
+        <div class="bg-white p-5 rounded-[2.5rem] border-b-4 shadow-sm"
+            [ngClass]="rendimientoPrimera >= 80 ? 'border-emerald-500' : 'border-amber-400'">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rendimiento 1ra</span>
+            <h3 class="text-3xl font-black text-slate-800 mt-1">{{ rendimientoPrimera | number:'1.1-1' }}%</h3>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div class="h-full bg-emerald-500 transition-all duration-1000" [style.width.%]="rendimientoPrimera">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2.5rem] border-b-4 shadow-sm"
+            [ngClass]="porcentajeOjos > 5 ? 'border-rose-500 bg-rose-50/30' : 'border-slate-200'">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Control Calidad</span>
+            <h3 class="text-3xl font-black mt-1" [class.text-rose-600]="porcentajeOjos > 5"
+                [class.text-slate-800]="porcentajeOjos <= 5">
+                {{ porcentajeOjos | number:'1.1-1' }}%
+            </h3>
+            <span class="text-[8px] font-black uppercase px-2 py-0.5 rounded-md mt-2 inline-block"
+                [ngClass]="porcentajeOjos > 5 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-400'">
+                {{ porcentajeOjos > 5 ? 'OJOS ELEVADOS' : 'DENTRO DE NORMA' }}
+            </span>
+        </div>
+
+        <div
+            class="bg-slate-800 p-5 rounded-[2.5rem] border-b-4 border-slate-950 shadow-xl flex flex-col justify-between">
+            <div>
+                <p class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Volumen Total</p>
+                <h3 class="text-3xl font-black text-white leading-none mt-1">{{ totalGlobal | number:'1.1-1' }} <small
+                        class="text-xs">kg</small></h3>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-white/10">
+                <div class="flex flex-col">
+                    <span class="text-[8px] font-black text-slate-500 uppercase">Partida</span>
+                    <span class="text-xs font-black text-white">{{ totalPartida | number:'1.0-1' }} kg</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[8px] font-black text-slate-500 uppercase">Ojos</span>
+                    <span class="text-xs font-black text-amber-400">{{ totalOjos | number:'1.0-1' }} kg</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-[2.5rem] border shadow-sm flex flex-col justify-center">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Avance de
+                Turno</span>
+            <div class="flex items-end gap-1 mt-1">
+                <h3 class="text-3xl font-black text-slate-800">{{ (totalGlobal / 1000 * 100) | number:'1.0-0' }}%</h3>
+                <span class="text-[10px] font-bold text-slate-300 mb-1">/ 1,000kg</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 grid grid-cols-3 gap-6">
+        <button (click)="registrarPeso('Primera')"
+            class="h-28 bg-white rounded-[2.2rem] border-2 border-emerald-500 shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center">
+            <span
+                class="text-3xl font-black text-emerald-600 uppercase italic tracking-tighter leading-none">Primera</span>
+            <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest mt-1">+ Pesaje</span>
+        </button>
+
+        <button (click)="registrarPeso('Partida')"
+            class="h-28 bg-white rounded-[2.2rem] border-2 border-rose-500 shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center">
+            <span
+                class="text-3xl font-black text-rose-600 uppercase italic tracking-tighter leading-none">Partida</span>
+            <span class="text-[10px] font-bold text-rose-300 uppercase tracking-widest mt-1">+ Pesaje</span>
+        </button>
+
+        <button (click)="registrarPeso('Ojos')"
+            class="h-28 bg-white rounded-[2.2rem] border-2 border-amber-500 shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center">
+            <span class="text-3xl font-black text-amber-600 uppercase italic tracking-tighter leading-none">Ojos</span>
+            <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest mt-1">+ Pesaje</span>
+        </button>
+    </div>
+
+    <div class="flex-1 p-4 overflow-hidden flex flex-col">
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    Flujo en Tiempo Real (Último arriba)
+                </span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-4">
+                <table class="w-full border-separate border-spacing-y-2">
+                    <thead>
+                        <tr class="text-[10px] font-black text-slate-400 uppercase text-left">
+                            <th class="px-6">Hora</th>
+                            <th class="px-6 text-center">Clasificación</th>
+                            <th class="px-6 text-right">Peso Neto</th>
+                            <th class="px-6 text-right">Botón Pánico</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let reg of historialReciente; let i = index"
+                            class="bg-white border shadow-sm group">
+                            <td class="px-6 py-4 text-[11px] font-bold text-slate-400 rounded-l-2xl border-y border-l">
+                                {{ reg.hora_registro }}
+                            </td>
+                            <td class="px-6 py-4 text-center border-y">
+                                <span [ngClass]="{
+                                    'bg-emerald-600 text-white shadow-emerald-200': reg.categoria==='Primera',
+                                    'bg-rose-500 text-white shadow-rose-200': reg.categoria==='Partida',
+                                    'bg-amber-500 text-white shadow-amber-200': reg.categoria==='Ojos'
+                                }" class="px-4 py-1 rounded-lg text-[10px] font-black uppercase italic shadow-md">
+                                    {{ reg.categoria }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right border-y">
+                                <span class="text-xl font-black text-slate-700">{{ reg.peso | number:'1.1-2' }}</span>
+                                <small class="ml-1 text-[10px] font-bold text-slate-400 uppercase">kg</small>
+                            </td>
+                            <td class="px-6 py-4 text-right rounded-r-2xl border-y border-r">
+                                <button *ngIf="puedeDeshacer(reg, i)" (click)="deshacer(reg.id, i)"
+                                    class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                                    ❌ Anular Pesaje
+                                </button>
+                                <span *ngIf="!puedeDeshacer(reg, i)"
+                                    class="text-[9px] font-bold text-slate-200 uppercase italic">Bloqueado</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

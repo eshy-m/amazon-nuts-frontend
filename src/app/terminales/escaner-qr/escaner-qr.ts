@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // 🔥 IMPORTANTE: Necesario para el input de DNI manual
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
-import { AsistenciaService } from '../../services/asistencia';
+import { AsistenciaService } from '../../core/services/asistencia';
 
 @Component({
   selector: 'app-escaner-qr',

@@ -14,7 +14,7 @@ import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 
 import { environment } from '../../../environments/environment';
-import { TrabajadorService } from '../../services/trabajador';
+import { TrabajadorService } from '../../core/services/trabajador';
 
 @Component({
   selector: 'app-trabajador',

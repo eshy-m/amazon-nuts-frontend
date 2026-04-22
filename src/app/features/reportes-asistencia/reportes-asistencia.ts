@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AsistenciaService } from '../../services/asistencia';
+import { AsistenciaService } from '../../core/services/asistencia';
 import { environment } from '../../../environments/environment'; // 👈 Importación vital para las URLs
 
 @Component({

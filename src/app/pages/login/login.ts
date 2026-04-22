@@ -13,18 +13,24 @@ import { environment } from '../../../environments/environment';
   styleUrl: './login.css'
 })
 export class LoginComponent {
+  // Inyección de servicios moderna (estilo Angular 17+)
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private router = inject(Router);
 
+  // Definición del formulario con validaciones básicas
   loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required]
+    login: ['', [Validators.required]], // Puede ser email o el nombre 'OPERARIO'
+    password: ['', [Validators.required, Validators.minLength(4)]]
   });
 
+  // Estados de la interfaz
   cargando: boolean = false;
   mensajeError: string = '';
 
+  /**
+   * Procesa el intento de inicio de sesión
+   */
   iniciarSesion() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -33,26 +39,36 @@ export class LoginComponent {
 
     this.cargando = true;
     this.mensajeError = '';
-    const urlLaravel = `${environment.apiUrl}/login`;
 
-    this.http.post(urlLaravel, this.loginForm.value).subscribe({
-      next: (respuesta: any) => {
-        // 1. Guardamos el Token de seguridad en el navegador (La llave de la bóveda)
-        localStorage.setItem('auth_token', respuesta.access_token);
+    // Llamada al endpoint de autenticación en Laravel
+    this.http.post(`${environment.apiUrl}/login`, this.loginForm.value).subscribe({
+      next: (res: any) => {
+        // 1. Almacenamos el token y los datos del usuario en el navegador
+        localStorage.setItem('auth_token', res.access_token);
+        localStorage.setItem('user_data', JSON.stringify(res.user));
 
-        // 2. Guardamos los datos del usuario (opcional, para mostrar "Hola, Carlos")
-        localStorage.setItem('user_data', JSON.stringify(respuesta.user));
-
-        // 3. Lo enviamos al Panel de Administración
-        this.router.navigate(['/admin']);
+        // 2. 🚦 REDIRECCIÓN INTELIGENTE SEGÚN EL ROL
+        // Role ID 1 = Administrador / Role ID 2 = Operario
+        if (res.user.role_id === 1) {
+          console.log('Acceso: Administrador');
+          this.router.navigate(['/admin/dashboard']);
+        }
+        else if (res.user.role_id === 2 || res.user.name === 'OPERARIO') {
+          console.log('Acceso: Operario');
+          this.router.navigate(['/operario/registros']);
+        }
+        else {
+          // Si el usuario tiene un rol no definido, lo enviamos al home por seguridad
+          this.router.navigate(['/']);
+        }
       },
       error: (err) => {
         this.cargando = false;
-        // Si puso mal la contraseña, Laravel nos manda un error 401
+        // Manejo de errores amigable
         if (err.status === 401) {
-          this.mensajeError = 'Correo o contraseña incorrectos.';
+          this.mensajeError = 'Usuario o contraseña incorrectos.';
         } else {
-          this.mensajeError = 'Ocurrió un error en el servidor.';
+          this.mensajeError = 'Error de conexión con el servidor. Intente más tarde.';
         }
       }
     });

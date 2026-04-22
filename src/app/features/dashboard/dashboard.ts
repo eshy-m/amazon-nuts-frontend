@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartData, ChartType, registerables } from 'chart.js';
-import { AsistenciaService } from '../../services/asistencia';
+import { AsistenciaService } from '../../core/services/asistencia';
 
 Chart.register(...registerables);
 

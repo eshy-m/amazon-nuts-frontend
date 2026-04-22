@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TurnoService } from '../../services/turno';
-import { MaestroService } from '../../services/maestro';
+import { TurnoService } from '../../core/services/turno';
+import { MaestroService } from '../../core/services/maestro';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
 

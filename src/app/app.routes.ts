@@ -3,75 +3,72 @@ import { Routes } from '@angular/router';
 // ==========================================
 // 📥 IMPORTACIONES DE COMPONENTES
 // ==========================================
-
-// 🌐 Páginas Públicas y Standalone
 import { Home } from './pages/home/home';
 import { Contacto } from './pages/contacto/contacto';
 import { LoginComponent } from './pages/login/login';
-import { EscanerQrComponent } from './pages/escaner-qr/escaner-qr'; // 🔥 NUEVO: Componente del Lector QR
-
-// 🛡️ Layout Principal del Administrador
+import { EscanerQrComponent } from './terminales/escaner-qr/escaner-qr';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout';
-import { ControlOperacionesComponent } from './pages/control-operaciones/control-operaciones';
-
-// 📦 Componentes del Panel de Administración (Hijos)
-import { DashboardComponent } from './pages/dashboard/dashboard';
-import { Admin } from './pages/admin/admin'; // Cotizaciones/Mensajes
-import { Trabajador } from './components/trabajador/trabajador';
-import { Asistencia } from './components/asistencia/asistencia';
-import { ReportesAsistenciaComponent } from './components/reportes-asistencia/reportes-asistencia';
-import { Turnos } from './pages/turnos/turnos';
-import { ConfiguracionComponent } from './pages/configuracion/configuracion';
-
-//Operaciones
-import { OperacionesFajaComponent } from './pages/operaciones-faja/operaciones-faja';
+import { ControlOperacionesComponent } from './features/control-operaciones/control-operaciones';
+import { DashboardComponent } from './features/dashboard/dashboard';
+import { Admin } from './features/admin/admin';
+import { Trabajador } from './features/trabajador/trabajador';
+import { Asistencia } from './features/asistencia/asistencia';
+import { ReportesAsistenciaComponent } from './features/reportes-asistencia/reportes-asistencia';
+import { Turnos } from './features/turnos/turnos';
+import { ConfiguracionComponent } from './features/configuracion/configuracion';
+import { AreaSeleccionComponent } from './terminales/area-seleccion/area-seleccion';
 
 // ==========================================
-// 🚀 CONFIGURACIÓN DE RUTAS
+// 🚀 CONFIGURACIÓN DE RUTAS (ORDENADAS)
 // ==========================================
 export const routes: Routes = [
 
+    // 1. PANTALLAS PÚBLICAS Y ACCESOS DIRECTOS
     // ------------------------------------------
-    // 1. RUTAS PÚBLICAS Y PANTALLAS COMPLETAS
-    // (No tienen menú lateral ni barra superior)
-    // ------------------------------------------
-    { path: '', component: Home },
-    { path: 'contacto', component: Contacto },
     { path: 'login', component: LoginComponent },
+    { path: 'contacto', component: Contacto },
+    { path: 'seleccion-directa', component: AreaSeleccionComponent }, // Acceso rápido tipo terminal
+    { path: '', component: Home }, // Página de inicio de la web
 
-    // 🚪 RUTA DEL ESCÁNER: Fija en la puerta de la planta (Pantalla Completa)
-    // { path: 'escaner-qr', component: EscanerQrComponent },
-
-    // ------------------------------------------
-    // 2. RUTAS ADMINISTRATIVAS
-    // (Envueltas en el AdminLayoutComponent)
+    // 2. RUTAS ADMINISTRATIVAS (Panel de Control Total)
     // ------------------------------------------
     {
         path: 'admin',
         component: AdminLayoutComponent,
         children: [
-
-            //operaciones
-            { path: 'operaciones/faja', component: OperacionesFajaComponent },
-            // Redirección por defecto al entrar a /admin
-            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-
-            // Módulos del sistema
             { path: 'dashboard', component: DashboardComponent },
-            { path: 'cotizaciones', component: Admin }, // Bandeja de mensajes de la web
-            { path: 'turnos', component: Turnos }, // Programación de turnos
-            { path: 'escaner-qr', component: EscanerQrComponent },
-            { path: 'trabajador', component: Trabajador }, // Gestión de personal
-            { path: 'asistencia', component: Asistencia }, // Monitoreo de asistencia del día
-            { path: 'reportes-asistencia', component: ReportesAsistenciaComponent }, // Historial y filtros
-            { path: 'configuracion', component: ConfiguracionComponent }, // Historial y filtros
             { path: 'operaciones/control', component: ControlOperacionesComponent },
+            { path: 'turnos', component: Turnos },
+            { path: 'escaner-qr', component: EscanerQrComponent },
+            { path: 'trabajador', component: Trabajador },
+            { path: 'asistencia', component: Asistencia },
+            { path: 'reportes-asistencia', component: ReportesAsistenciaComponent },
+            { path: 'configuracion', component: ConfiguracionComponent },
+            { path: 'cotizaciones', component: Admin },
+            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
         ]
     },
 
+    // 3. RUTAS DEL OPERARIO (Dashboard Personalizado)
     // ------------------------------------------
-    // 3. RUTA COMODÍN (Debe ir SIEMPRE al final)
+    {
+        path: 'operario',
+        // Por ahora cargamos los componentes directamente. 
+        // En el futuro, aquí usaremos 'OperarioLayoutComponent' para tener un menú lateral propio.
+        children: [
+            { path: 'registros', component: AreaSeleccionComponent }, // Pantalla de ingresos e historial
+
+            /* ⚠️ NOTA: Descomenta estas líneas cuando crees los componentes:
+               { path: 'analisis', component: AnalisisComponent }, 
+               { path: 'mejoras', component: MejorasComponent }, 
+            */
+
+            { path: '', redirectTo: 'registros', pathMatch: 'full' }
+        ]
+    },
+
+    // 4. RUTA COMODÍN (¡SIEMPRE AL FINAL!)
     // ------------------------------------------
-    // Si el usuario escribe una URL que no existe, lo manda a la página principal
+    // Si el usuario escribe cualquier cosa mal, lo mandamos al inicio.
     { path: '**', redirectTo: '' }
 ];

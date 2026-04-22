@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -34,5 +34,18 @@ export class OperacionesService {
   registrarPesaje(datos: any) {
     // datos: { lote_id, categoria, peso }
     return this.http.post(`${this.apiUrl}/pesajes`, datos);
+  }
+  // ==========================================
+  // KIOSCO (TABLET OPERARIOS)
+  // ==========================================
+
+  sincronizarPesajes(pesajes: any[]) {
+    // Apunta a la nueva ruta que creamos en Laravel
+    return this.http.post(`${this.apiUrl}/kiosco/pesajes/sincronizar`, { pesajes });
+  }
+
+  deshacerPesaje(id: number | string) {
+    // Apunta a la ruta de eliminar de Laravel
+    return this.http.delete(`${this.apiUrl}/kiosco/pesajes/deshacer/${id}`);
   }
 }

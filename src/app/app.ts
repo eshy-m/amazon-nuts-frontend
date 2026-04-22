@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { Navbar } from './components/navbar/navbar';
-import { Footer } from './components/footer/footer';
+import { Navbar } from './shared/navbar/navbar';
+import { Footer } from './shared/footer/footer';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +20,12 @@ export class App {
     this.router.events.subscribe((event: any) => {
       if (event instanceof NavigationEnd) {
         const url = event.urlAfterRedirects || event.url || '';
-        this.mostrarLayoutPublico = !(url.includes('/login') || url.includes('/admin'));
+        // 🚦 Si la URL contiene /login, /admin o /operario, ocultamos el layout público
+        this.mostrarLayoutPublico = !(
+          url.includes('/login') ||
+          url.includes('/admin') ||
+          url.includes('/operario')
+        );
       }
     });
   }
