@@ -21,18 +21,17 @@ export class AreaSeleccionComponent implements OnInit {
   hayInternet = navigator.onLine;
   historialReciente: any[] = [];
 
-  // Totales
+  // Totales para los Cards
   totalGlobal: number = 0;
   totalPrimera: number = 0;
   totalPartida: number = 0;
   totalOjos: number = 0;
-
-  // KPIs
   rendimientoPrimera: number = 0;
   porcentajeOjos: number = 0;
 
   ngOnInit(): void {
     this.verificarLote();
+    // Escuchar estado de red
     window.addEventListener('online', () => { this.hayInternet = true; this.cdr.detectChanges(); });
     window.addEventListener('offline', () => { this.hayInternet = false; this.cdr.detectChanges(); });
   }
@@ -42,7 +41,7 @@ export class AreaSeleccionComponent implements OnInit {
       next: (res: any) => {
         this.loteActivo = res.lote;
         if (res.lote && res.lote.pesajes) {
-          // Ordenamos para que el ID más alto esté arriba
+          // Ordenar: El último ID arriba
           const dataOrdenada = [...res.lote.pesajes].sort((a, b) => b.id - a.id);
 
           this.historialReciente = dataOrdenada.map((p: any) => ({
@@ -57,15 +56,16 @@ export class AreaSeleccionComponent implements OnInit {
         this.cargando = false;
         this.cdr.detectChanges();
       },
-      error: () => { this.loteActivo = null; this.cargando = false; this.cdr.detectChanges(); }
+      error: () => {
+        this.loteActivo = null;
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
   calcularTodo() {
-    this.totalGlobal = 0;
-    this.totalPrimera = 0;
-    this.totalPartida = 0;
-    this.totalOjos = 0;
+    this.totalGlobal = 0; this.totalPrimera = 0; this.totalPartida = 0; this.totalOjos = 0;
 
     this.historialReciente.forEach(reg => {
       this.totalGlobal += reg.peso;
@@ -96,28 +96,37 @@ export class AreaSeleccionComponent implements OnInit {
   }
 
   enviarDato(categoria: string, peso: number) {
+    const nuevoRegistro = {
+      id: Date.now(), // ID temporal para modo offline
+      categoria,
+      peso,
+      created_at: new Date().toISOString(),
+      hora_registro: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+      estado: 'Pendiente' // Marca visual si está offline
+    };
+
+    // ACTUALIZACIÓN INSTANTÁNEA (Inmutabilidad)
+    this.historialReciente = [nuevoRegistro, ...this.historialReciente];
+    this.calcularTodo();
+    this.cdr.detectChanges();
+
     const data = { lote_id: this.loteActivo.id, categoria, peso };
     this.api.registrarPesaje(data).subscribe({
       next: (res: any) => {
-        const nuevoRegistro = {
-          id: res.id,
-          categoria,
-          peso,
-          created_at: new Date().toISOString(),
-          hora_registro: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-        };
-
-        // ACTUALIZACIÓN INSTANTÁNEA: Creamos un nuevo array con el dato al principio
-        this.historialReciente = [nuevoRegistro, ...this.historialReciente];
-
-        this.calcularTodo();
-        this.cdr.detectChanges(); // Forzamos el refresco visual inmediato
+        // Actualizamos el ID temporal con el real del servidor
+        this.historialReciente[0].id = res.id;
+        this.historialReciente[0].estado = 'Sincronizado';
+        this.cdr.detectChanges();
         Swal.fire({ title: 'OK', icon: 'success', timer: 600, showConfirmButton: false });
+      },
+      error: () => {
+        // Si falla (offline), el dato ya está en la tabla, el operario sigue trabajando
+        this.historialReciente[0].estado = 'Local';
+        this.cdr.detectChanges();
       }
     });
   }
 
-  // Lógica de Pánico: Solo último registro y menos de 5 min
   puedeDeshacer(reg: any, index: number): boolean {
     if (index !== 0) return false;
     const ahora = new Date();
@@ -129,19 +138,18 @@ export class AreaSeleccionComponent implements OnInit {
   deshacer(id: number, index: number) {
     Swal.fire({
       title: '¿Anular Pesaje?',
+      text: "Se eliminará del sistema y de los totales.",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#e11d48',
-      confirmButtonText: 'Sí, Anular'
+      confirmButtonColor: '#e11d48'
     }).then((result) => {
       if (result.isConfirmed) {
         this.api.deshacerPesaje(id).subscribe({
           next: () => {
-            // Actualización instantánea tras borrar
             this.historialReciente = this.historialReciente.filter((_, i) => i !== index);
             this.calcularTodo();
             this.cdr.detectChanges();
-            Swal.fire('Anulado', '', 'success');
+            Swal.fire('Eliminado', '', 'success');
           }
         });
       }
@@ -149,12 +157,18 @@ export class AreaSeleccionComponent implements OnInit {
   }
 
   cerrarLote() {
-    Swal.fire({ title: '¿Cerrar Lote?', icon: 'warning', showCancelButton: true }).then(result => {
+    Swal.fire({
+      title: '¿Cerrar Lote?',
+      text: "Esta acción finalizará la producción actual.",
+      icon: 'warning',
+      showCancelButton: true
+    }).then(result => {
       if (result.isConfirmed) {
         this.loteActivo = null;
         this.historialReciente = [];
         this.calcularTodo();
         this.cdr.detectChanges();
+        Swal.fire('Lote Cerrado', '', 'success');
       }
     });
   }
