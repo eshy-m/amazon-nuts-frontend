@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -38,7 +39,8 @@ export class OperacionesService {
   // ÁREA DE SECADO (HORNOS)
   // ==========================================
   getProcesosSecado() {
-    return this.http.get(`${this.apiUrl}/secado/activos`);
+    // 🔴 CORREGIDO: Antes decía /secado/activos, ahora coincide con Laravel
+    return this.http.get(`${this.apiUrl}/secado/procesos-activos`);
   }
 
   iniciarSecado(data: any) {
@@ -47,6 +49,9 @@ export class OperacionesService {
 
   finalizarSecado(id: number, data: any) {
     return this.http.put(`${this.apiUrl}/secado/finalizar/${id}`, data);
+  }
+  cerrarLoteSecado(loteId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/secado/lote/${loteId}/cerrar`, {});
   }
   // ==========================================
   // KIOSCO Y TABLETS (OPERARIOS SELECCIÓN)
@@ -67,5 +72,17 @@ export class OperacionesService {
   deshacerPesaje(id: number) {
     return this.http.delete(`${this.apiUrl}/pesajes/deshacer/${id}`);
   }
+  // operaciones.service.ts
 
+  getLoteActivoSecado(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/operaciones/lote-activo-secado`);
+  }
+
+  enviarASecado(id: number) {
+    return this.http.post(`${this.apiUrl}/operaciones/enviar-a-secado/${id}`, {});
+  }
+
+  getProcesosActivos() {
+    return this.http.get(`${this.apiUrl}/secado/procesos-activos`);
+  }
 }

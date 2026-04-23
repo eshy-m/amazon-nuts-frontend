@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
+
 @Component({
   selector: 'app-control-operaciones',
   templateUrl: './control-operaciones.html',
@@ -141,8 +142,32 @@ export class ControlOperacionesComponent implements OnInit, OnDestroy {
       }
     });
   }
-  /**
-   * ESTA ES LA FUNCIÓN QUE FALTA PARA QUE LOS BOTONES FUNCIONEN
-   */
+  // Reemplaza tu antigua función enviarASecado y cerrarLote con esta única función:
+  enviarASecado() {
+    if (!this.loteActivo) return;
 
+    Swal.fire({
+      title: '¿Finalizar Selección?',
+      text: "El lote pasará al área de Secado (Hornos). Ya no se podrán registrar más pesajes en esta área.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, enviar a Secado',
+      confirmButtonColor: '#059669',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.enviarASecado(this.loteActivo.id).subscribe({
+          next: () => {
+            Swal.fire('¡Lote Enviado!', 'El lote ahora está en la cola de Secado.', 'success');
+            this.loteActivo = null; // Limpiamos la pantalla de selección
+            // Si tienes una función para recargar la UI, llámala aquí (ej: this.cargarDatos())
+          },
+          error: (err) => {
+            Swal.fire('Error', 'Hubo un problema al enviar el lote.', 'error');
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
 }

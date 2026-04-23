@@ -1,94 +1,93 @@
-<div class="h-screen bg-slate-100 flex flex-col font-sans overflow-x-hidden">
+<div class="h-screen bg-slate-100 flex flex-col font-sans overflow-hidden">
 
     <div class="bg-white p-4 flex justify-between items-center border-b border-orange-200 shadow-sm sticky top-0 z-50">
         <div class="flex items-center gap-4">
             <h1 class="text-xl font-black text-slate-800 tracking-tighter">AMAZON <span
                     class="text-orange-600">NUTS</span></h1>
-            <div class="h-8 w-[1px] bg-slate-200"></div>
-            <div class="flex flex-col">
-                <span class="text-[10px] font-black text-slate-400 uppercase">Panel de Control</span>
-                <span class="text-sm font-black text-orange-600 uppercase">Horno Único</span>
+            <div class="flex flex-col border-l pl-4 border-slate-200">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Área de Secado</span>
+                <span class="text-sm font-black text-orange-600 uppercase">Control de Hornos</span>
             </div>
         </div>
         <div class="flex gap-2 items-center">
-            <div class="mr-4 text-right">
+            <div *ngIf="loteActivo" class="mr-4 text-right">
                 <p class="text-[9px] font-bold text-slate-400 uppercase">Lote Activo</p>
-                <p class="text-sm font-black text-slate-800">#{{ loteActivo?.id || 'Ninguno' }}</p>
+                <p class="text-sm font-black text-slate-800">#{{ loteActivo.id }}</p>
             </div>
             <button (click)="logout()"
                 class="bg-slate-900 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">Salir</button>
         </div>
     </div>
 
-    <div class="p-6 flex-1">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+    <div class="flex-1 overflow-y-auto p-6">
 
-            <div *ngFor="let cat of categorias"
-                class="bg-white rounded-3xl shadow-sm border-2 overflow-hidden flex flex-col"
-                [ngClass]="getProcesoActivo(cat) ? 'border-orange-500' : 'border-slate-200'">
+        <div *ngIf="!loteActivo" class="h-full flex flex-col items-center justify-center text-center">
+            <div class="bg-white p-10 rounded-[3rem] shadow-xl border border-slate-200 max-w-md">
+                <span class="text-5xl mb-4 block">⏳</span>
+                <h2 class="text-2xl font-black text-slate-800 uppercase italic">Esperando Lote</h2>
+                <p class="text-slate-500 mt-2 font-medium">El área de Ingeniería aún no ha enviado un lote a Secado. Por
+                    favor, espere indicaciones.</p>
+            </div>
+        </div>
 
-                <div class="p-5 border-b flex justify-between items-center"
-                    [ngClass]="getProcesoActivo(cat) ? 'bg-orange-50' : 'bg-slate-50'">
-                    <h3 class="text-2xl font-black text-slate-800 uppercase">{{ cat }}</h3>
+        <div *ngIf="loteActivo">
 
-                    <span *ngIf="getProcesoActivo(cat)" class="flex h-3 w-3 relative">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 bg-orange-500 rounded-full animate-ping"></span> Stock disponible para ingresar
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div *ngFor="let cat of ['Primera', 'Partida', 'Ojos']"
+                    class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200 flex flex-col justify-between text-center relative overflow-hidden">
+
+                    <div [class.opacity-40]="stockDisponible[cat] <= 0">
                         <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-                    </span>
-                    <span *ngIf="!getProcesoActivo(cat)"
-                        class="px-2 py-1 bg-slate-200 text-slate-500 rounded text-[9px] font-black uppercase">En
-                        Espera</span>
-                </div>
-
-                <div class="p-6 flex-1 flex flex-col justify-center">
-
-                    <div *ngIf="!getProcesoActivo(cat)" class="text-center flex flex-col items-center gap-4">
-                        <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-2">
-                            <span class="text-3xl opacity-50">💤</span>
-                        </div>
-                        <p class="text-xs font-bold text-slate-400 uppercase text-center mb-4">No hay castaña de esta
-                            categoría en el horno.</p>
-                        <button (click)="abrirModalInicio(cat)"
-                            class="w-full bg-slate-900 hover:bg-orange-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-colors shadow-lg shadow-slate-200">
-                            + Ingresar al Horno
-                        </button>
+                            class="bg-slate-100 text-slate-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{{cat}}</span>
+                        <p class="text-5xl font-black text-slate-800 mt-4">{{ stockDisponible[cat] | number:'1.1-2' }}
+                            <span class="text-sm text-slate-400">kg</span>
+                        </p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Húmedo en espera</p>
                     </div>
 
-                    <div *ngIf="getProcesoActivo(cat) as proceso" class="flex flex-col gap-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">Temperatura
-                                </p>
-                                <p class="text-xl font-black text-orange-600">{{ proceso.temperatura_celsius }}°C</p>
-                            </div>
-                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">Peso Húmedo
-                                </p>
-                                <p class="text-xl font-black text-slate-700">{{ proceso.peso_entrada_kg }}<span
-                                        class="text-xs">kg</span></p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-orange-600 p-6 rounded-2xl text-center text-white shadow-xl shadow-orange-200 mt-2">
-                            <p class="text-[10px] text-orange-200 uppercase font-black tracking-widest mb-1">Tiempo en
-                                Horno</p>
-                            <h2 class="text-4xl font-black tracking-tighter">{{
-                                calcularTiempoTranscurrido(proceso.hora_inicio) }}</h2>
-                            <p class="text-[9px] mt-2 opacity-80 uppercase">Inicio: {{ proceso.hora_inicio |
-                                date:'shortTime' }}</p>
-                        </div>
-
-                        <button (click)="finalizarSecado(proceso)"
-                            class="w-full mt-4 bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-colors">
-                            Registrar Salida y Peso
-                        </button>
-                    </div>
-
+                    <button (click)="iniciarSecadoRapido(cat)" [disabled]="stockDisponible[cat] <= 0"
+                        class="mt-6 w-full py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all"
+                        [ngClass]="stockDisponible[cat] > 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'bg-slate-100 text-slate-300 cursor-not-allowed'">
+                        {{ stockDisponible[cat] > 0 ? '▶ Iniciar Horno' : 'Sin Stock' }}
+                    </button>
                 </div>
             </div>
 
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 italic">Procesos en curso</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div *ngFor="let proceso of procesosActivos"
+                    class="bg-white p-6 rounded-[2rem] border-2 border-orange-100 shadow-sm relative overflow-hidden">
+
+                    <div class="absolute -right-2 -top-2 bg-slate-800 text-white px-4 py-2 rounded-bl-2xl shadow-lg">
+                        <p class="text-[8px] font-black uppercase text-orange-400">Temp.</p>
+                        <p class="text-sm font-black">{{ proceso.temperatura_celsius }}°C</p>
+                    </div>
+
+                    <div class="flex flex-col mb-4">
+                        <span
+                            class="w-fit bg-orange-600 text-white text-[9px] font-black px-2 py-1 rounded-md uppercase mb-1">{{
+                            proceso.categoria }}</span>
+                        <span class="text-slate-800 font-black text-2xl">{{ proceso.peso_entrada_kg }}<small
+                                class="text-xs ml-1">kg</small></span>
+                    </div>
+
+                    <div class="bg-slate-900 p-4 rounded-2xl text-center text-white mb-4">
+                        <p class="text-[8px] text-slate-400 uppercase font-black">Tiempo en Horno</p>
+                        <h2 class="text-2xl font-black tracking-tighter">{{
+                            calcularTiempoTranscurrido(proceso.hora_inicio) }}</h2>
+                    </div>
+
+                    <button (click)="finalizarSecado(proceso)"
+                        class="w-full bg-white border border-slate-200 text-slate-800 py-3 rounded-xl font-black uppercase text-[10px] hover:bg-orange-50 transition-colors shadow-sm">
+                        Registrar Salida
+                    </button>
+                </div>
+            </div>
         </div>
+
     </div>
 </div>

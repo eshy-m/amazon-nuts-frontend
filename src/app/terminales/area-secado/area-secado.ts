@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { OperacionesService } from '../../core/services/operaciones'; // Ajusta tu ruta
+import { OperacionesService } from '../../core/services/operaciones';
 
 @Component({
   selector: 'app-area-secado',
@@ -16,14 +16,15 @@ export class AreaSecado implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   loteActivo: any = null;
-  categorias = ['Primera', 'Partida', 'Ojos'];
   procesosActivos: any[] = [];
+  stockDisponible: any = { Primera: 0, Partida: 0, Ojos: 0 };
   intervaloReloj: any;
-  nuevoProceso = { categoria: 'Primera', temperatura_celsius: 60, peso_entrada_kg: 0 };
 
   ngOnInit() {
+    // 🔴 ESTA LÍNEA CORRIGE EL ERROR: Carga los datos de inmediato
     this.cargarDatos();
-    // Actualizar los cronómetros cada minuto
+
+    // Actualizar cronómetros cada minuto
     this.intervaloReloj = setInterval(() => {
       this.cdr.detectChanges();
     }, 60000);
@@ -37,67 +38,56 @@ export class AreaSecado implements OnInit, OnDestroy {
     this.api.getProcesosSecado().subscribe({
       next: (res: any) => {
         this.loteActivo = res.lote;
-        this.procesosActivos = res.procesos_activos;
+        this.procesosActivos = res.procesos_activos || [];
+        this.stockDisponible = res.stock_disponible || { Primera: 0, Partida: 0, Ojos: 0 };
         this.cdr.detectChanges();
+      },
+      error: () => {
+        console.error("Error al conectar con el servidor");
       }
     });
   }
 
-  // Verifica si una categoría específica ya está dentro del horno
-  getProcesoActivo(categoria: string) {
-    return this.procesosActivos.find(p => p.categoria === categoria);
-  }
-
-  // Calcula el tiempo que lleva en el horno
-  calcularTiempoTranscurrido(horaInicio: string): string {
-    const inicio = new Date(horaInicio).getTime();
-    const ahora = new Date().getTime();
-    const diffMinutos = Math.floor((ahora - inicio) / 60000);
-
-    const horas = Math.floor(diffMinutos / 60);
-    const minutos = diffMinutos % 60;
-    return `${horas}h ${minutos}m`;
-  }
-
-  abrirModalInicio(categoria: string) {
-    if (!this.loteActivo) {
-      Swal.fire('Error', 'No hay un lote en proceso de producción.', 'error');
-      return;
-    }
+  iniciarSecadoRapido(categoria: string) {
+    const peso = this.stockDisponible[categoria];
 
     Swal.fire({
-      title: `Ingresar ${categoria} al Horno`,
+      title: `Iniciar Horno: ${categoria}`,
       html: `
-        <div class="flex flex-col gap-3 text-left">
-          <label class="text-xs font-bold text-slate-500 uppercase">Temperatura (°C)</label>
-          <input id="swal-temp" type="number" class="p-3 border rounded-xl" value="55.0">
+        <div class="text-left mt-4">
+          <label class="text-xs font-bold text-slate-400 uppercase">Peso a ingresar (kg)</label>
+          <input type="number" id="swal-peso" class="swal2-input" value="${peso.toFixed(2)}">
           
-          <label class="text-xs font-bold text-slate-500 uppercase mt-2">Peso Húmedo Entrada (kg)</label>
-          <input id="swal-peso" type="number" class="p-3 border rounded-xl" placeholder="Ej: 150.5">
+          <label class="text-xs font-bold text-slate-400 uppercase mt-4 block">Temperatura del Horno (°C)</label>
+          <input type="number" id="swal-temp" class="swal2-input" value="60">
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Iniciar Secado',
-      confirmButtonColor: '#f97316', // Orange-500
+      confirmButtonText: 'Encender Horno',
+      confirmButtonColor: '#ea580c',
       preConfirm: () => {
-        const temp = (document.getElementById('swal-temp') as HTMLInputElement).value;
-        const peso = (document.getElementById('swal-peso') as HTMLInputElement).value;
-        if (!temp || !peso) Swal.showValidationMessage('Ambos campos son obligatorios');
-        return { temperatura_celsius: temp, peso_entrada_kg: peso };
+        const pesoIngresado = (document.getElementById('swal-peso') as HTMLInputElement).value;
+        const tempIngresada = (document.getElementById('swal-temp') as HTMLInputElement).value;
+        if (!pesoIngresado || !tempIngresada) {
+          Swal.showValidationMessage('Por favor completa todos los campos');
+        }
+        return {
+          peso_entrada_kg: parseFloat(pesoIngresado),
+          temperatura_celsius: parseFloat(tempIngresada)
+        };
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        const payload = {
+        const data = {
           lote_id: this.loteActivo.id,
           categoria: categoria,
-          ...result.value
+          temperatura_celsius: result.value.temperatura_celsius,
+          peso_entrada_kg: result.value.peso_entrada_kg
         };
 
-        this.api.iniciarSecado(payload).subscribe({
-          next: () => {
-            Swal.fire('¡Horno Iniciado!', `La categoría ${categoria} está secando.`, 'success');
-            this.cargarDatos();
-          }
+        this.api.iniciarSecado(data).subscribe(() => {
+          Swal.fire('Horno Encendido', 'El proceso ha comenzado', 'success');
+          this.cargarDatos();
         });
       }
     });
@@ -105,61 +95,35 @@ export class AreaSecado implements OnInit, OnDestroy {
 
   finalizarSecado(proceso: any) {
     Swal.fire({
-      title: `Finalizar Secado: ${proceso.categoria}`,
-      html: `
-        <div class="flex flex-col gap-3 text-left">
-          <div class="bg-orange-50 p-3 rounded-xl mb-2">
-            <p class="text-xs font-bold text-orange-600">Peso de Entrada: ${proceso.peso_entrada_kg} kg</p>
-          </div>
-          <label class="text-xs font-bold text-slate-500 uppercase">Peso Seco Salida (kg)</label>
-          <input id="swal-peso-salida" type="number" class="p-3 border rounded-xl border-orange-300" placeholder="Ej: 120.0">
-        </div>
-      `,
+      title: 'Registrar Peso de Salida',
+      html: `<input type="number" id="swal-peso-salida" class="swal2-input" placeholder="Kilos Secos">`,
       showCancelButton: true,
-      confirmButtonText: 'Registrar Salida',
-      confirmButtonColor: '#10b981', // Emerald
+      confirmButtonText: 'Finalizar Secado',
       preConfirm: () => {
-        const pesoSalida = (document.getElementById('swal-peso-salida') as HTMLInputElement).value;
-        if (!pesoSalida) Swal.showValidationMessage('Ingrese el peso de salida');
-        if (parseFloat(pesoSalida) > proceso.peso_entrada_kg) Swal.showValidationMessage('El peso de salida no puede ser mayor al de entrada');
-        return { peso_salida_kg: pesoSalida };
+        const peso = (document.getElementById('swal-peso-salida') as HTMLInputElement).value;
+        if (!peso) Swal.showValidationMessage('Debe ingresar el peso');
+        return { peso_salida_kg: peso };
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        this.api.finalizarSecado(proceso.id, result.value).subscribe({
-          next: () => {
-            Swal.fire('¡Proceso Finalizado!', 'El peso ha sido registrado correctamente.', 'success');
-            this.cargarDatos();
-          }
+        this.api.finalizarSecado(proceso.id, result.value).subscribe(() => {
+          this.cargarDatos();
+          Swal.fire('Finalizado', 'Merma calculada con éxito', 'success');
         });
       }
     });
   }
 
-  logout() {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+  calcularTiempoTranscurrido(horaInicio: string): string {
+    const inicio = new Date(horaInicio).getTime();
+    const ahora = new Date().getTime();
+    const diffMs = ahora - inicio;
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffMins = Math.floor((diffMs % 3600000) / 60000);
+    return `${diffHrs}h ${diffMins}m`;
   }
 
-  registrarEntrada() {
-    if (!this.loteActivo) {
-      Swal.fire('Error', 'No hay un lote de producción activo en Ingeniería', 'error');
-      return;
-    }
-
-    // Agregamos el lote_id a los datos del formulario
-    const data = {
-      ...this.nuevoProceso,
-      lote_id: this.loteActivo.id
-    };
-
-    this.api.iniciarSecado(data).subscribe({
-      next: (res) => {
-        Swal.fire('¡Éxito!', 'Castaña ingresada al horno', 'success');
-        this.cargarDatos(); // Refrescar lista
-        // Resetear formulario
-        this.nuevoProceso = { categoria: 'Primera', temperatura_celsius: 60, peso_entrada_kg: 0 };
-      }
-    });
+  logout() {
+    this.router.navigate(['/login']);
   }
 }

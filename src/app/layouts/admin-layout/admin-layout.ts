@@ -50,6 +50,11 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
       icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
     },
     {
+      path: '/admin/trabajador',
+      title: 'Personal',
+      icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m10-2.13a4 4 0 10-8 0 4 4 0 008 0zM9 10a4 4 0 110-8 4 4 0 010 8z'
+    },
+    {
       path: '/admin/asistencia',
       title: 'Asistencia Diaria',
       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'

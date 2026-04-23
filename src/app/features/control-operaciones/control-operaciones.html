@@ -12,16 +12,11 @@
             </p>
         </div>
 
-        <div *ngIf="loteActivo" class="flex gap-4">
-            <div class="bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-xl">
-                <p class="text-[10px] font-black uppercase opacity-60 tracking-widest">Lote Activo #{{ loteActivo.id }}
-                </p>
-                <p class="text-2xl font-black">{{ loteActivo.cantidad_sacos }} Sacos <span
-                        class="text-blue-400">/</span> {{ loteActivo.peso_total_ingreso }} kg</p>
-            </div>
-            <button *ngIf="loteActivo.estado === 'En Proceso'" (click)="cerrarLote()"
-                class="bg-rose-600 text-white px-6 rounded-3xl font-black uppercase text-xs hover:bg-rose-700 transition-all shadow-lg shadow-rose-200">
-                Finalizar Lote
+        <div *ngIf="loteActivo" class="mt-6 flex w-full">
+            <button (click)="enviarASecado()"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-5 rounded-2xl font-black uppercase tracking-tighter shadow-lg flex items-center justify-center gap-3 transition-all">
+                <span class="text-2xl">🔥</span>
+                FINALIZAR SELECCIÓN Y PASAR A HORNOS
             </button>
         </div>
     </div>
