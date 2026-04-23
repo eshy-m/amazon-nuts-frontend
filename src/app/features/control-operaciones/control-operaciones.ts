@@ -66,15 +66,18 @@ export class ControlOperacionesComponent implements OnInit, OnDestroy {
 
     this.api.getMetricas().subscribe({
       next: (res: any) => {
-        if (res.lote_activo) {
-          this.loteActivo = res.lote_activo;
-          this.metricas = res;
+        if (res.lote && res.lote) {
+          this.loteActivo = res.lote;
+          this.metricas = res.metricas;
         } else {
           this.loteActivo = null;
         }
         this.cargando = false;
       },
-      error: () => this.cargando = false
+      error: () => {
+        this.loteActivo = null;
+        this.cargando = false;
+      }
     });
   }
 
