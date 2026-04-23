@@ -140,5 +140,4 @@ export class ControlOperacionesComponent implements OnInit, OnDestroy {
    * ESTA ES LA FUNCIÓN QUE FALTA PARA QUE LOS BOTONES FUNCIONEN
    */
 
-
 }
