@@ -17,6 +17,7 @@ import { ReportesAsistenciaComponent } from './features/reportes-asistencia/repo
 import { Turnos } from './features/turnos/turnos';
 import { ConfiguracionComponent } from './features/configuracion/configuracion';
 import { AreaSeleccionComponent } from './terminales/area-seleccion/area-seleccion';
+import { AreaSecado } from './terminales/area-secado/area-secado';
 
 // ==========================================
 // 🚀 CONFIGURACIÓN DE RUTAS (ORDENADAS)
@@ -27,7 +28,8 @@ export const routes: Routes = [
     // ------------------------------------------
     { path: 'login', component: LoginComponent },
     { path: 'contacto', component: Contacto },
-    { path: 'seleccion-directa', component: AreaSeleccionComponent }, // Acceso rápido tipo terminal
+    { path: 'seleccion-directo', component: AreaSeleccionComponent }, // Acceso rápido terminal Selección
+    { path: 'secado-directo', component: AreaSecado },                // <-- ¡AQUÍ ESTÁ LA NUEVA RUTA PARA EL HORNO!
     { path: '', component: Home }, // Página de inicio de la web
 
     // 2. RUTAS ADMINISTRATIVAS (Panel de Control Total)

@@ -31,150 +31,189 @@ export class AreaSeleccionComponent implements OnInit {
 
   ngOnInit(): void {
     this.verificarLote();
-    // Escuchar estado de red
+    // Escuchar estado de red para el indicador ONLINE/OFFLINE
     window.addEventListener('online', () => { this.hayInternet = true; this.cdr.detectChanges(); });
     window.addEventListener('offline', () => { this.hayInternet = false; this.cdr.detectChanges(); });
   }
 
+  /**
+   * Obtiene el lote desde el servidor y sus pesajes
+   */
   verificarLote() {
+    this.cargando = true;
     this.api.getLoteActivo().subscribe({
-      next: (res: any) => {
-        this.loteActivo = res.lote;
-        if (res.lote && res.lote.pesajes) {
-          // Ordenar: El último ID arriba
-          const dataOrdenada = [...res.lote.pesajes].sort((a, b) => b.id - a.id);
-
-          this.historialReciente = dataOrdenada.map((p: any) => ({
-            id: p.id,
-            categoria: p.categoria,
-            peso: parseFloat(p.peso),
-            created_at: p.created_at,
-            hora_registro: new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-          }));
-          this.calcularTodo();
-        }
+      next: (lote: any) => {
+        this.loteActivo = lote;
         this.cargando = false;
+
+        if (lote) {
+          // Cargamos pesajes y calculamos totales
+          // uestra la tabla tal como es this.historialReciente = lote.pesajes || [];
+          this.historialReciente = lote.pesajes.sort((a: any, b: any) => b.id - a.id);//muestra de inicio a fin
+          this.calcularTodo();
+        } else {
+          this.historialReciente = [];
+          this.totalGlobal = 0;
+        }
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.loteActivo = null;
+      error: (err) => {
+        console.error("Error al obtener lote:", err);
         this.cargando = false;
         this.cdr.detectChanges();
       }
     });
   }
 
+  /**
+   * Suma los pesos por categoría para los cuadros de arriba
+   */
   calcularTodo() {
-    this.totalGlobal = 0; this.totalPrimera = 0; this.totalPartida = 0; this.totalOjos = 0;
+    this.totalGlobal = 0;
+    this.totalPrimera = 0;
+    this.totalPartida = 0;
+    this.totalOjos = 0;
 
     this.historialReciente.forEach(reg => {
-      this.totalGlobal += reg.peso;
-      if (reg.categoria === 'Primera') this.totalPrimera += reg.peso;
-      if (reg.categoria === 'Partida') this.totalPartida += reg.peso;
-      if (reg.categoria === 'Ojos') this.totalOjos += reg.peso;
+      const peso = parseFloat(reg.peso);
+      this.totalGlobal += peso;
+      if (reg.categoria === 'Primera') this.totalPrimera += peso;
+      if (reg.categoria === 'Partida') this.totalPartida += peso;
+      if (reg.categoria === 'Ojos') this.totalOjos += peso;
     });
 
     if (this.totalGlobal > 0) {
       this.rendimientoPrimera = (this.totalPrimera / this.totalGlobal) * 100;
       this.porcentajeOjos = (this.totalOjos / this.totalGlobal) * 100;
+    } else {
+      this.rendimientoPrimera = 0;
+      this.porcentajeOjos = 0;
     }
   }
 
-  registrarPeso(categoria: string) {
-    if (!this.loteActivo) return;
+  /**
+   * Función principal que llaman los botones: Primera, Partida, Ojos
+   */
+  registrar(categoria: string) {
+    if (!this.loteActivo) {
+      Swal.fire('¡Atención!', 'No hay un lote activo iniciado por ingeniería.', 'warning');
+      return;
+    }
+
     Swal.fire({
-      title: `Peso ${categoria}`,
+      title: `Registrar ${categoria}`,
       input: 'number',
+      inputLabel: 'Ingrese el peso en kilogramos',
+      inputPlaceholder: '0.0',
       inputAttributes: { step: '0.1', autofocus: 'true' },
       showCancelButton: true,
-      confirmButtonText: 'Guardar'
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        this.enviarDato(categoria, parseFloat(result.value));
+      confirmButtonText: 'Guardar Pesaje',
+      confirmButtonColor: '#10b981',
+      preConfirm: (valor) => {
+        if (!valor || valor <= 0) {
+          Swal.showValidationMessage('Ingrese un peso válido mayor a 0');
+        }
+        return valor;
       }
-    });
-  }
-
-  enviarDato(categoria: string, peso: number) {
-    const nuevoRegistro = {
-      id: Date.now(), // ID temporal para modo offline
-      categoria,
-      peso,
-      created_at: new Date().toISOString(),
-      hora_registro: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-      estado: 'Pendiente' // Marca visual si está offline
-    };
-
-    // ACTUALIZACIÓN INSTANTÁNEA (Inmutabilidad)
-    this.historialReciente = [nuevoRegistro, ...this.historialReciente];
-    this.calcularTodo();
-    this.cdr.detectChanges();
-
-    const data = { lote_id: this.loteActivo.id, categoria, peso };
-    this.api.registrarPesaje(data).subscribe({
-      next: (res: any) => {
-        // Actualizamos el ID temporal con el real del servidor
-        this.historialReciente[0].id = res.id;
-        this.historialReciente[0].estado = 'Sincronizado';
-        this.cdr.detectChanges();
-        Swal.fire({ title: 'OK', icon: 'success', timer: 600, showConfirmButton: false });
-      },
-      error: () => {
-        // Si falla (offline), el dato ya está en la tabla, el operario sigue trabajando
-        this.historialReciente[0].estado = 'Local';
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  puedeDeshacer(reg: any, index: number): boolean {
-    if (index !== 0) return false;
-    const ahora = new Date();
-    const registroHora = new Date(reg.created_at);
-    const diffMin = (ahora.getTime() - registroHora.getTime()) / 60000;
-    return diffMin <= 5;
-  }
-
-  deshacer(id: number, index: number) {
-    Swal.fire({
-      title: '¿Anular Pesaje?',
-      text: "Se eliminará del sistema y de los totales.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#e11d48'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.api.deshacerPesaje(id).subscribe({
-          next: () => {
-            this.historialReciente = this.historialReciente.filter((_, i) => i !== index);
-            this.calcularTodo();
+        const data = {
+          lote_id: this.loteActivo.id,
+          categoria: categoria,
+          peso: parseFloat(result.value)
+        };
+
+        this.api.registrarPesaje(data).subscribe({
+          next: (res: any) => {
+            // Refrescamos datos
+            this.verificarLote();
+
+            Swal.fire({
+              title: '¡Guardado!',
+              text: `${res.peso} kg registrados en ${categoria}`,
+              icon: 'success',
+              timer: 1000,
+              showConfirmButton: false
+            });
+
+            // Forzamos actualización de la vista para evitar el "congelamiento"
             this.cdr.detectChanges();
-            Swal.fire('Eliminado', '', 'success');
+          },
+          error: () => {
+            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
           }
         });
       }
     });
   }
 
-  cerrarLote() {
+  /**
+   * Lógica del botón de pánico (Anular)
+   */
+  deshacer(id: number, index: number) {
     Swal.fire({
-      title: '¿Cerrar Lote?',
-      text: "Esta acción finalizará la producción actual.",
+      title: '¿Anular Pesaje?',
+      text: "Se eliminará permanentemente de los totales.",
       icon: 'warning',
-      showCancelButton: true
-    }).then(result => {
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48',
+      confirmButtonText: 'Sí, eliminar'
+    }).then((result) => {
       if (result.isConfirmed) {
-        this.loteActivo = null;
-        this.historialReciente = [];
-        this.calcularTodo();
-        this.cdr.detectChanges();
-        Swal.fire('Lote Cerrado', '', 'success');
+        this.api.deshacerPesaje(id).subscribe({
+          next: () => {
+            // Eliminamos de la lista local para respuesta instantánea
+            this.historialReciente.splice(index, 1);
+            this.calcularTodo();
+            this.cdr.detectChanges();
+            Swal.fire({ title: 'Eliminado', icon: 'success', timer: 800, showConfirmButton: false });
+          },
+          error: (err) => {
+            const msg = err.error?.error || 'No se pudo eliminar';
+            Swal.fire('Error', msg, 'error');
+          }
+        });
       }
     });
   }
+
   /**
-   * BOTÓN SALIR (Sesión)
+   * Verifica si un registro aún puede ser eliminado (Regla de los 5 minutos)
    */
+  puedeDeshacer(reg: any, index: number): boolean {
+    // Solo permitimos deshacer el último registro por seguridad
+    if (index !== 0) return false;
+
+    const ahora = new Date().getTime();
+    const registroHora = new Date(reg.created_at).getTime();
+    const diffMin = (ahora - registroHora) / 60000;
+
+    return diffMin <= 5;
+  }
+
+  cerrarLote() {
+    Swal.fire({
+      title: '¿Finalizar Lote?',
+      text: "Se cerrará la producción actual y se limpiará la pantalla.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0f172a',
+      confirmButtonText: 'Sí, cerrar lote'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.api.cerrarLote(this.loteActivo.id).subscribe({
+          next: () => {
+            this.loteActivo = null;
+            this.historialReciente = [];
+            this.calcularTodo();
+            this.cdr.detectChanges();
+            Swal.fire('Lote Finalizado', 'La jornada ha sido guardada.', 'success');
+          }
+        });
+      }
+    });
+  }
+
   logout() {
     Swal.fire({
       title: '¿Cerrar Sesión?',
@@ -184,8 +223,7 @@ export class AreaSeleccionComponent implements OnInit {
       cancelButtonText: 'Volver'
     }).then((result) => {
       if (result.isConfirmed) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
+        localStorage.clear();
         this.router.navigate(['/login']);
       }
     });

@@ -1,4 +1,5 @@
-<div class="h-screen bg-slate-100 flex flex-col font-sans overflow-x-hidden">
+<!--<div class="min-h-screen bg-slate-100 flex flex-col font-sans overflow-x-hidden"> es para que se vea como un web normal y deslixe-->
+<div class="h-screen bg-slate-100 flex flex-col font-sans overflow-x-hidden overflow-y-auto">
 
     <div class="bg-white p-4 flex justify-between items-center border-b shadow-sm sticky top-0 z-50">
         <div class="flex items-center gap-3">
@@ -54,19 +55,19 @@
     </div>
 
     <div class="px-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <button (click)="registrarPeso('Primera')"
+        <button (click)="registrar('Primera')"
             class="h-20 md:h-28 bg-white rounded-3xl border-2 border-emerald-500 shadow-sm active:scale-95 flex md:flex-col items-center justify-center gap-4 md:gap-1">
             <span class="text-2xl md:text-3xl font-black text-emerald-600 uppercase italic">Primera</span>
             <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">+ Pesaje</span>
         </button>
 
-        <button (click)="registrarPeso('Partida')"
+        <button (click)="registrar('Partida')"
             class="h-20 md:h-28 bg-white rounded-3xl border-2 border-rose-500 shadow-sm active:scale-95 flex md:flex-col items-center justify-center gap-4 md:gap-1">
             <span class="text-2xl md:text-3xl font-black text-rose-600 uppercase italic">Partida</span>
             <span class="text-[10px] font-bold text-rose-300 uppercase tracking-widest">+ Pesaje</span>
         </button>
 
-        <button (click)="registrarPeso('Ojos')"
+        <button (click)="registrar('Ojos')"
             class="h-20 md:h-28 bg-white rounded-3xl border-2 border-amber-500 shadow-sm active:scale-95 flex md:flex-col items-center justify-center gap-4 md:gap-1">
             <span class="text-2xl md:text-3xl font-black text-amber-600 uppercase italic">Ojos</span>
             <span class="text-[10px] font-bold text-amber-300 uppercase tracking-widest">+ Pesaje</span>

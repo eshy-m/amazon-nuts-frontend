@@ -6,46 +6,66 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class OperacionesService {
-  private apiUrl = environment.apiUrl + '/operaciones';
+
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
-  // --- MÉTODOS COMPARTIDOS ---
+  // ==========================================
+  // PANEL DEL INGENIERO (CONTROL DE OPERACIONES)
+  // ==========================================
+
+  iniciarLote(data: any) {
+    return this.http.post(`${this.apiUrl}/operaciones/iniciar-lote`, data);
+  }
+
+  // 🔴 CORRECCIÓN: Ya no pide el (loteId: number)
+  getMetricas() {
+    return this.http.get(`${this.apiUrl}/operaciones/metricas`);
+  }
+
+  registrarMuestreo(data: any) {
+    return this.http.post(`${this.apiUrl}/operaciones/muestreos`, data);
+  }
+
+  // 🔴 CORRECCIÓN: Se agregó la función cerrarLote
+  cerrarLote(id: number) {
+    return this.http.put(`${this.apiUrl}/operaciones/lotes/${id}/cerrar`, {});
+  }
+
+
+  // ==========================================
+  // ÁREA DE SECADO (HORNOS)
+  // ==========================================
+  getProcesosSecado() {
+    return this.http.get(`${this.apiUrl}/secado/activos`);
+  }
+
+  iniciarSecado(data: any) {
+    return this.http.post(`${this.apiUrl}/secado/iniciar`, data);
+  }
+
+  finalizarSecado(id: number, data: any) {
+    return this.http.put(`${this.apiUrl}/secado/finalizar/${id}`, data);
+  }
+  // ==========================================
+  // KIOSCO Y TABLETS (OPERARIOS SELECCIÓN)
+  // ==========================================
   getLoteActivo() {
-    return this.http.get(`${this.apiUrl}/lotes/activo`);
+    // IMPORTANTE: Asegúrate de que la ruta coincida con la de api.php
+    return this.http.get(`${this.apiUrl}/operaciones/lotes/activo`);
   }
 
-  // --- MÉTODOS DEL INGENIERO ---
-  iniciarLote(datos: any) {
-    // datos: { cantidad_sacos, peso_por_saco }
-    return this.http.post(`${this.apiUrl}/lotes`, datos);
+  registrarPesaje(data: any) {
+    return this.http.post(`${this.apiUrl}/pesajes`, data);
   }
 
-  registrarMuestreo(datos: any) {
-    // datos: { lote_id, peso_muestra, peso_entera, peso_partida, peso_ojos, peso_podrido }
-    return this.http.post(`${this.apiUrl}/muestreos`, datos);
+  sincronizarPesajes(data: any) {
+    return this.http.post(`${this.apiUrl}/pesajes/sincronizar`, data);
   }
 
-  getMetricas(loteId: number) {
-    return this.http.get(`${this.apiUrl}/lotes/${loteId}/metricas`);
+  deshacerPesaje(id: number) {
+    return this.http.delete(`${this.apiUrl}/pesajes/deshacer/${id}`);
   }
 
-  // --- MÉTODOS DEL OPERARIO ---
-  registrarPesaje(datos: any) {
-    // datos: { lote_id, categoria, peso }
-    return this.http.post(`${this.apiUrl}/pesajes`, datos);
-  }
-  // ==========================================
-  // KIOSCO (TABLET OPERARIOS)
-  // ==========================================
-
-  sincronizarPesajes(pesajes: any[]) {
-    // Apunta a la nueva ruta que creamos en Laravel
-    return this.http.post(`${this.apiUrl}/kiosco/pesajes/sincronizar`, { pesajes });
-  }
-
-  deshacerPesaje(id: number | string) {
-    // Apunta a la ruta de eliminar de Laravel
-    return this.http.delete(`${this.apiUrl}/kiosco/pesajes/deshacer/${id}`);
-  }
 }
