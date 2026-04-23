@@ -29,7 +29,7 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'contacto', component: Contacto },
     { path: 'seleccion-directo', component: AreaSeleccionComponent }, // Acceso rápido terminal Selección
-    { path: 'secado-directo', component: AreaSecado },                // <-- ¡AQUÍ ESTÁ LA NUEVA RUTA PARA EL HORNO!
+    { path: 'secado-terminal', component: AreaSecado },                // <-- ¡AQUÍ ESTÁ LA NUEVA RUTA PARA EL HORNO!
     { path: '', component: Home }, // Página de inicio de la web
 
     // 2. RUTAS ADMINISTRATIVAS (Panel de Control Total)

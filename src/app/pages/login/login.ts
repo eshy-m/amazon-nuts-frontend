@@ -41,34 +41,29 @@ export class LoginComponent {
     this.mensajeError = '';
 
     // Llamada al endpoint de autenticación en Laravel
+    // src/app/auth/login/login.ts
+
     this.http.post(`${environment.apiUrl}/login`, this.loginForm.value).subscribe({
       next: (res: any) => {
-        // 1. Almacenamos el token y los datos del usuario en el navegador
         localStorage.setItem('auth_token', res.access_token);
         localStorage.setItem('user_data', JSON.stringify(res.user));
 
-        // 2. 🚦 REDIRECCIÓN INTELIGENTE SEGÚN EL ROL
-        // Role ID 1 = Administrador / Role ID 2 = Operario
-        if (res.user.role_id === 1) {
-          console.log('Acceso: Administrador');
+        const user = res.user;
+
+        // 1. Si es Administrador (Role 1), va al Dashboard
+        if (user.role_id === 1) {
           this.router.navigate(['/admin/dashboard']);
         }
-        else if (res.user.role_id === 2 || res.user.name === 'OPERARIO') {
-          console.log('Acceso: Operario');
+        // 2. Si el área es Secado (ID 2), va a Secado (Prioridad sobre rol de operario)
+        else if (user.name === 'SECADO') {
+          this.router.navigate(['/secado-terminal']);
+        }
+        // 3. Por defecto, si es operario (Role 2) sin área específica, va a selección
+        else if (user.name === 'SELECCION' || user.role_id === 2) {
           this.router.navigate(['/operario/registros']);
         }
         else {
-          // Si el usuario tiene un rol no definido, lo enviamos al home por seguridad
           this.router.navigate(['/']);
-        }
-      },
-      error: (err) => {
-        this.cargando = false;
-        // Manejo de errores amigable
-        if (err.status === 401) {
-          this.mensajeError = 'Usuario o contraseña incorrectos.';
-        } else {
-          this.mensajeError = 'Error de conexión con el servidor. Intente más tarde.';
         }
       }
     });

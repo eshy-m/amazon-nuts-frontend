@@ -24,7 +24,8 @@ export class App {
         this.mostrarLayoutPublico = !(
           url.includes('/login') ||
           url.includes('/admin') ||
-          url.includes('/operario')
+          url.includes('/operario') ||
+          url.includes('/secado-terminal')
         );
       }
     });

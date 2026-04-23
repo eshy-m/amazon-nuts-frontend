@@ -19,6 +19,7 @@ export class AreaSecado implements OnInit, OnDestroy {
   categorias = ['Primera', 'Partida', 'Ojos'];
   procesosActivos: any[] = [];
   intervaloReloj: any;
+  nuevoProceso = { categoria: 'Primera', temperatura_celsius: 60, peso_entrada_kg: 0 };
 
   ngOnInit() {
     this.cargarDatos();
@@ -35,7 +36,7 @@ export class AreaSecado implements OnInit, OnDestroy {
   cargarDatos() {
     this.api.getProcesosSecado().subscribe({
       next: (res: any) => {
-        this.loteActivo = res.lote_activo;
+        this.loteActivo = res.lote;
         this.procesosActivos = res.procesos_activos;
         this.cdr.detectChanges();
       }
@@ -138,5 +139,27 @@ export class AreaSecado implements OnInit, OnDestroy {
   logout() {
     localStorage.clear();
     this.router.navigate(['/login']);
+  }
+
+  registrarEntrada() {
+    if (!this.loteActivo) {
+      Swal.fire('Error', 'No hay un lote de producción activo en Ingeniería', 'error');
+      return;
+    }
+
+    // Agregamos el lote_id a los datos del formulario
+    const data = {
+      ...this.nuevoProceso,
+      lote_id: this.loteActivo.id
+    };
+
+    this.api.iniciarSecado(data).subscribe({
+      next: (res) => {
+        Swal.fire('¡Éxito!', 'Castaña ingresada al horno', 'success');
+        this.cargarDatos(); // Refrescar lista
+        // Resetear formulario
+        this.nuevoProceso = { categoria: 'Primera', temperatura_celsius: 60, peso_entrada_kg: 0 };
+      }
+    });
   }
 }

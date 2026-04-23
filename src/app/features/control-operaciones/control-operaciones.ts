@@ -61,21 +61,23 @@ export class ControlOperacionesComponent implements OnInit, OnDestroy {
     if (this.pollingTimer) clearInterval(this.pollingTimer);
   }
 
-  obtenerMetricas(mostrarCargando = true) {
-    if (mostrarCargando) this.cargando = true;
+  obtenerMetricas(mostrarCarga = true) {
+    if (mostrarCarga) this.cargando = true;
 
     this.api.getMetricas().subscribe({
       next: (res: any) => {
-        if (res.lote && res.lote) {
-          this.loteActivo = res.lote;
-          this.metricas = res.metricas;
-        } else {
-          this.loteActivo = null;
+        // Validación estricta: Solo actualizamos metricas si el servidor realmente envió 'kpis'
+        if (res && res.kpis) {
+          this.metricas = res;
         }
+
+        // Asignamos el lote de forma segura
+        this.loteActivo = (res && res.lote) ? res.lote : null;
+
         this.cargando = false;
       },
-      error: () => {
-        this.loteActivo = null;
+      error: (err) => {
+        console.error('Error de conexión:', err);
         this.cargando = false;
       }
     });
